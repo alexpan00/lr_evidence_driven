@@ -20,13 +20,13 @@ then
     echo -e "\tlongitud de la región flanqeante"
     echo -e "\tdirectorio de salida (no debe existir)"
     echo -e "\tnombre de los ficheros de salida"
-    echo -e "\ttamño de los subsets de entranamiento (ej. 200,1000,1500)"
+    # echo -e "\ttamño de los subsets de entranamiento (ej. 200,1000,1500)"
     echo -e "\tsemilla para genrar los sets (opcional, valor por defecto = 123)"
     exit 0
 fi
 
 pwd;date
-module load conda
+# module load conda
 source activate busco
 
 # PATH
@@ -38,12 +38,15 @@ genoma=$2   # genoma de referencia
 fr=$3       # longitud de la región flanqueante para el formato GB
 out_dir=$4  # Directorio de trabajo
 out_name=$5 # Nombre para la especie y los fichero de salida
-subsets=$6  # Tamño de los subsets de entrenamiento
-seed=$7     # semilla para la generación de lso subsets
+#subsets=$6 # Tamaño de los subsets de entrenamiento
+seed=$6     # semilla para la generación de lso subsets
+
+# Cálculo del tamaño de los subsets
+subsets=$(python3 ${utilities}autosubsets.py $gff)
 
 # Run info
 echo "Genoma: $genoma"
-echo "GTF: $gff"
+echo "GTF/GFF: $gff"
 echo "Longitud de la región flanqueante: $fr"
 echo "Tamaño de los conjuntos de entrenamiento: $subsets"
 echo "Directorio de salida: $out_dir"
