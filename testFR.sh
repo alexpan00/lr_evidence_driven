@@ -25,7 +25,7 @@ for i in "${arrIN[@]}"
 do
     echo "Flanking region $i"
     sbatch --output AUGUSTUS_fr$i.log --job-name=AUGUSTUS_fr$i \
-    ${utilities}gff2Augustus.sbatch $gff $genoma \
+    ${utilities}gtf2Augustus.sbatch $gff $genoma \
     $i $out_dir/fr$i ${out_name}_fr$i
   
 done
