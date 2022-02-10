@@ -3,8 +3,8 @@
 #SBATCH --partition=short # Partition (queue)
 #SBATCH --ntasks=1 
 #SBATCH --mail-type=ALL
-#SBATCH --cpus-per-task=12 # Number of tasks = cpus
-#SBATCH --mem-per-cpu=8gb # Job memory request
+#SBATCH --cpus-per-task=1 # Number of tasks = cpus
+#SBATCH --mem-per-cpu=30gb # Job memory request
 #SBATCH --time=0-12:00:00 # Time limit days-hrs:min:sec
 #SBATCH --output=Augustus_subsets.log # Standard output and error log
 
