@@ -13,6 +13,7 @@ seed=$6     # semilla para la generación de lso subsets
 
 # PATHS
 utilities="/home/apadepe/utilities/"
+species_path="/home/apadepe/.conda/envs/busco/config/species/"
 
 # Creación de un array a partir de los valores separados por comas
 arrIN=(${fr//,/ })
@@ -20,6 +21,7 @@ arrIN=(${fr//,/ })
 # Creación de un directorio padre dentro del cual se crearan los directorios
 # para los resultados de cada tamaño de la región flanqueante
 mkdir $out_dir
+cd $out_dir
 # iterar por los distintos tamaños de la región flanqueante
 for i in "${arrIN[@]}"
 do
@@ -28,4 +30,4 @@ do
     ${utilities}gtf2Augustus.sbatch $gff $genoma \
     $i $out_dir/fr$i ${out_name}_fr$i
   
-done
+done        
