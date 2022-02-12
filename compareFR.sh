@@ -27,7 +27,7 @@ while read -r line
 do
     sbatch --job-name=test$line --output $line.log \
         ${utilities}testAugustus.sbatch $line $test_set $out_dir/comparison
-done
+done < $out_dir/comparison/species.txt
 
 # Mover los resultados y generar los plots
 for i in "${arrIN[@]}"
