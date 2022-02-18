@@ -21,7 +21,7 @@ mkdir $out_dir/comparison
 cd $out_dir/comparison
 
 # Comando para generar un fichero con las especies a comparar
-ll $species_path | grep -v ${arrIN[-1]} | grep ${out_name} | grep subset | cut -f10 -d " " > $out_dir/comparison/species.txt
+ls -l $species_path | grep -v ${arrIN[-1]} | grep ${out_name} | grep subset | cut -f10 -d " " > $out_dir/comparison/species.txt
 # Testear todos los modelos para la región flanqueante más larga
 while read -r line
 do
