@@ -9,7 +9,7 @@
 #SBATCH --output=Augustus_subsets.log # Standard output and error log
 
 # Script para ir desde un gff/gtf hasta correr Augustus para distintos tamaños
-# de set de entreanmiento y generar los plots
+# de set de entreanmiento, longitudes de la FR y generar los plots
 
 # Comprobar los argumentos que se le han pasado al script
 if [ -z "$1" ] || [ $1 == '-h' ]
