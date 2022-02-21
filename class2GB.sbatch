@@ -3,8 +3,8 @@
 #SBATCH --partition=short # Partition (queue)
 #SBATCH --ntasks=1 
 #SBATCH --mail-type=ALL
-#SBATCH --cpus-per-task=1 # Number of tasks = cpus
-#SBATCH --mem-per-cpu=30gb # Job memory request
+#SBATCH --cpus-per-task=4 # Number of tasks = cpus
+#SBATCH --mem-per-cpu=12gb # Job memory request
 #SBATCH --time=0-02:00:00 # Time limit days-hrs:min:sec
 #SBATCH --output=class2GB.log # Standard output and error log
 
@@ -32,6 +32,12 @@ python $utilities/filter_sam.py ${out_dir}/filtered_${sqanti_prefix}_classificat
 # Uso del sam filtrado para el colapso utilizando TAMA
 conda activate tama
 cd $out_dir
-python ${tama_dir}tama_collapse.py -s fitered_${sqanti_prefix}_corrected.sam -f $genoma\
+# Ordenado
+samtools sort -u -o sorted_${sqanti_prefix}.sam -O sam -@ 4 ${sqanti_prefix}_corrected.sam
+
+# TAMA collapse
+python ${tama_dir}tama_collapse.py -s ${out_dir}/sorted_${sqanti_prefix}.sam -f $genoma\
     -p $out_dir/${sqanti_prefix} -x no_cap -m 100 -z 100
+
+
 
