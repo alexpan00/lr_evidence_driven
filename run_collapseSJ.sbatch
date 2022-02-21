@@ -20,7 +20,7 @@ utilities="/home/apadepe/utilities/"
 in_dir=$1
 
 # Ir al directorio que contiene las SJ
-cd $in dir
+cd $in_dir
 
 # Combinar todos los fichero de SJ
 cat *SJ.out.tab > compelteSJ.out.tab

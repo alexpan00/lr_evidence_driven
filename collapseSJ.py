@@ -15,7 +15,7 @@ def main():
     directorio = os.path.dirname(args.SJ)
     archivo = os.path.basename(args.SJ)
     # Archvio de salida
-    f_out = open(directorio + "collapsed_" + archivo, "w")
+    f_out = open(directorio + "/collapsed_" + archivo, "w")
     print(directorio + "/collapsed_" + archivo)
     # Variable en la que se irán guardando las lineas a media que se lean
     aux_record = list()
