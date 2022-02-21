@@ -5,7 +5,8 @@ tránscritos.
 '''
 
 import argparse
-
+from ast import arg
+import os
 
 def parse_classification(classification: str)-> list:
     '''
@@ -34,7 +35,8 @@ def main():
     # Leer tránscritos del clasification
     l_transcripts = parse_classification(args.classification)
     # Abrir el sam nuevo
-    f_out = open(args.out_dir + "/" + "filtered_" + args.sam, "w")
+    sam_basename = os.path.basename(args.sam)
+    f_out = open(args.out_dir + "/" + "filtered_" + sam_basename, "w")
     # Abrir el sam a filtrar
     with open(args.sam, "r") as f_in:
         for linea in f_in:
