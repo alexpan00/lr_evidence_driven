@@ -39,9 +39,8 @@ conda activate tama
 python ${tama_dir}tama_collapse.py -s ${out_dir}/sorted_${sqanti_prefix}.sam -f $genoma\
     -p $out_dir/${sqanti_prefix} -x no_cap -m 100 -z 100
 
-
-COnvertir a GTF
+conda activate lrgasp2
+#Convertir a GTF
 python ${utilities}/bed2gtf.py ${sqanti_prefix}.bed
 
-conda activate lrgasp2
 # Correr SQANTI3 en el gtf
