@@ -15,7 +15,7 @@ class_path = paste(sq_dir, paste0(sq_prefix, "_classification.txt"), sep = "/")
 classification = read.delim(class_path)
 
 # Filtrado del classification
-filtered_clasification <- class %>% 
+filtered_clasification <- classification %>% 
   filter(exons > 1) %>% # Quitar los monoexones
   filter(coding == "coding") %>% # Dejar solo los codificantes
   filter(predicted_NMD == "FALSE") %>%  # Que no tengan señales de NMD
