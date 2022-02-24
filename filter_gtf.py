@@ -17,7 +17,7 @@ def main():
         for linea in f_in:
             l_genes.append(linea.strip())
     
-    f_out = open(args.out_dir + "filtered_" + gtf_basename, "w")
+    f_out = open(args.out_dir + "/filtered_" + gtf_basename, "w")
     with open(args.gtf, "r") as f_in:
         for linea in f_in:
             transcript_id = linea.split('"')[3]

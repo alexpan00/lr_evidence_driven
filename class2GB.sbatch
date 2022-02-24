@@ -30,9 +30,11 @@ sqanti_prefix=$2 # Prefijo de los output de SQANTI3
 out_dir=$3 # Directorio para los ficheros de salida
 
 # Filtrado del classification
+echo "Filtrado del classification:"
 Rscript $utilities/filterClassification.R $sqanti_output_dir $sqanti_prefix $out_dir
 
 # Filtrado del sam del mapeo de los tránscritos a partir del classification
+echo "Filtrado y ordenado del sam:"
 python $utilities/filter_sam.py ${out_dir}/filtered_${sqanti_prefix}_classification.txt \
     ${sqanti_output_dir}/${sqanti_prefix}_corrected.sam $out_dir
 
@@ -43,6 +45,7 @@ samtools sort -u -o sorted_${sqanti_prefix}.sam -O sam -@ 4 filtered_${sqanti_pr
 
 # TAMA collapse
 conda activate tama
+echo "Colapso a nivel del isoforma:"
 python ${tama_dir}tama_collapse.py -s ${out_dir}/sorted_${sqanti_prefix}.sam -f $genoma\
     -p $out_dir/${sqanti_prefix} -x no_cap -m 100 -z 100
 
@@ -53,9 +56,10 @@ python ${utilities}/bed2gtf.py ${sqanti_prefix}.bed
 # Correr SQANTI3 en el gtf
 mkdir ${out_dir}/SQANTI3
 cd $SQ_folder
-python sqanti3_lrgasp.challenge3.py ${sqanti_prefix}.gtf $anotacion $genoma \
-	--experiment_json ${utilities}experiment_dummy.json \
-    --entry_json ${utilities}entry_dummy.json \
+echo "SQANTI3 sobre las isoformas colapsadas:"
+python sqanti3_lrgasp.challenge3.py ${out_dir}/${sqanti_prefix}.gtf $anotacion $genoma \
+	--experiment_json ${SQ_utilities}experiment_dummy.json \
+    --entry_json ${SQ_utilities}entry_dummy.json \
 	-c $SR -d ${out_dir}/SQANTI3 \
 	-o $sqanti_prefix -t 8 -g --skip_report
 
@@ -65,16 +69,19 @@ cd $out_dir
 # una identidad del 80 % 
 conda activate busco
 
-cd-hit -o ${sqanti_prefix}.cdhit -c 0.8 -i ${sqanti_prefix}_corrected.faa -p 1 -d 0 -T 4 -M 48000
+echo "Collapso a nivel de proteína:"
+cd-hit -o ${sqanti_prefix}.cdhit -c 0.8 -i SQANTI3/${sqanti_prefix}_corrected.faa -p 1 -d 0 -T 4 -M 48000
 
 # Comprobar la redundancia depués de colapsar
+echo "BUSCO anlysis post-colapso:"
 busco -m protein -i ${sqanti_prefix}.cdhit -o busco_cdhit -l eutheria_odb10 \
     -c 4 --offline --download_path $BUSCO_dir
 
 # Identificadores de los tránscritos que hay que mantener
+echo "Filtrado final"
 grep ">" ${sqanti_prefix}.cdhit | cut -f2 -d">" | cut -f1 > cdhit.lst 
 
-# FIltrado del GTF con información de la CDS producido por SQANTI
+# Filtrado del GTF con información de la CDS producido por SQANTI
 python ${utilities}/filter_gtf.py ${out_dir}/cdhit.lst \
     ${out_dir}/SQANTI3/${sqanti_prefix}_corrected.gtf.cds.gff \
     ${out_dir}
