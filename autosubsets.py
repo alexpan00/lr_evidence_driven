@@ -46,7 +46,7 @@ def subset_sizes(total: int)-> list:
 def main():
     parser = argparse.ArgumentParser()
     #parser.add_argument("gtf")
-    parser.add_argument("n")
+    parser.add_argument("n", type=int)
     parser.add_argument("-ts", "--test_size",
                         help="size of the test set",
                         nargs='?', type=int, const=500, default=500)
