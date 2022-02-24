@@ -41,14 +41,12 @@ out_name=$5 # Nombre para la especie y los fichero de salida
 #subsets=$6 # Tamaño de los subsets de entrenamiento
 seed=$6     # semilla para la generación de lso subsets
 
-# Cálculo del tamaño de los subsets
-subsets=$(python3 ${utilities}autosubsets.py $gff)
 
 # Run info
 echo "Genoma: $genoma"
 echo "GTF/GFF: $gff"
 echo "Longitud de la región flanqueante: $fr"
-echo "Tamaño de los conjuntos de entrenamiento: $subsets"
+#echo "Tamaño de los conjuntos de entrenamiento: $subsets"
 echo "Directorio de salida: $out_dir"
 echo "Nombre del los fichero se salida: $out_name"
 if [ -z "$7" ]
@@ -77,6 +75,11 @@ mv $out_name.gb.train ${out_name}_train.gb
 
 # Generación de los subsets a partir del set de entrenamiento
 echo "Generación se los subconjuntos de entrenameinto"
+
+# Cálculo del tamaño de los subsets
+subsets=$(python3 ${utilities}autosubsets.py `grep -c LOCUS ${out_name}_train.gb`)
+
+echo "tamaño de los subsets: $subsets"
 python3 ${utilities}generate_subsets.py ${out_name}_train.gb $out_name `pwd`/\
     -l $subsets --seed $seed
 cd results

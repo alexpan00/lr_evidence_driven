@@ -45,14 +45,15 @@ def subset_sizes(total: int)-> list:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("gtf")
+    #parser.add_argument("gtf")
+    parser.add_argument("n")
     parser.add_argument("-ts", "--test_size",
                         help="size of the test set",
                         nargs='?', type=int, const=500, default=500)
     args = parser.parse_args()
 
     # Contar los tránscritos
-    total_transcripts = count_transcripts(args.gtf)
+    total_transcripts = args.n
 
     # Restar los tránscritos que se van a dedicar al testeo
     testing_transcripts = total_transcripts - args.test_size
