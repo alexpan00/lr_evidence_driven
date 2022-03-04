@@ -13,7 +13,7 @@ def count_rename(in_file, name, wd)-> dict:
     # fichero de salida
     out_file = wd + "/" + name + "_counts.csv"
     # Se escribe la cabecera
-    f_out = (out_file, "w")
+    f_out = open(out_file, "w")
     f_out.write("id,sample1\n")
     # Recorrer el fichero de entrada
     with open(in_file, "r") as f_in:
