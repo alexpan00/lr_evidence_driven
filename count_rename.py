@@ -11,10 +11,10 @@ def count_rename(in_file, name, wd)-> dict:
     # Diccionario nombre viejo nombre nuevo
     d_names = dict()
     # fichero de salida
-    out_file = wd + "/" + name + "_counts.csv"
+    out_file = wd + "/" + name + ".counts.tsv"
     # Se escribe la cabecera
     f_out = open(out_file, "w")
-    f_out.write("id,sample1\n")
+    f_out.write("pbid\tcount_fl\n")
     # Recorrer el fichero de entrada
     with open(in_file, "r") as f_in:
         for i, linea in enumerate(f_in,1):
@@ -25,7 +25,7 @@ def count_rename(in_file, name, wd)-> dict:
             # Se cuenta el número de reads, los id están separados por comas
             n_reads = str(len(reads.split(","))) 
             # Se ecribe el conteo al fichero
-            f_out.write(new_name + "," + n_reads + "\n")
+            f_out.write(new_name + "\t" + n_reads + "\n")
     
     f_out.close()
     return d_names
