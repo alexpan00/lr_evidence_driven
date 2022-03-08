@@ -11,7 +11,7 @@
 # Script que permite ir desde el arhivo classification de salida de
 # SQANTI3 hasta los tránscritos filtrados y colapsados en formato GB
 
-source activate lrgasp2
+
 # PATHS
 export PYTHONPATH=$PYTHONPATH:/home/apadepe/cDNA_Cupcake/sequence/
 export PYTHONPATH=$PYTHONPATH:/home/apadepe/cDNA_Cupcake/
@@ -28,10 +28,23 @@ BUSCO_dir="/home/apadepe/TFM/BUSCO/busco_downloads"
 sqanti_output_dir=$1 # Directorio de salida de los output de SQANTI3
 sqanti_prefix=$2 # Prefijo de los output de SQANTI3
 out_dir=$3 # Directorio para los ficheros de salida
+tec=$4 # Tecnologia de secuenciacion empleada
 
 # Filtrado del classification
 echo "Filtrado del classification:"
-Rscript $utilities/filterClassification.R $sqanti_output_dir $sqanti_prefix $out_dir
+source activate busco
+
+# Uno de los criterios para filtrar es que la prteína tenga hits de blast
+# en el proteoma de mamíferos con al menos un 80% de cobertura
+echo "BLAST frente al proteoma de referencia de mamifero:"
+blastp -query $sqanti_output_dir/*.faa -db $BLAST_DB -out $out_dir/blastp_out.txt \
+    -evalue 1e-50 \
+    -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen" \
+    -num_alignments 3 -num_threads 4 
+
+conda activate lrgasp2
+Rscript $utilities/filterClassification.R $sqanti_output_dir $sqanti_prefix $out_dir \
+    $out_dir $out_dir/blastp_out.txt $4
 
 # Filtrado del sam del mapeo de los tránscritos a partir del classification
 echo "Filtrado y ordenado del sam:"
