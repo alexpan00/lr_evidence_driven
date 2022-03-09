@@ -3,7 +3,7 @@
 #SBATCH --partition=short # Partition (queue)
 #SBATCH --ntasks=1 
 #SBATCH --mail-type=ALL
-#SBATCH --cpus-per-task=4 # Number of tasks = cpus
+#SBATCH --cpus-per-task=8 # Number of tasks = cpus
 #SBATCH --mem-per-cpu=12gb # Job memory request
 #SBATCH --time=0-24:00:00 # Time limit days-hrs:min:sec
 #SBATCH --output=class2GB.log # Standard output and error log
@@ -23,6 +23,7 @@ SR="/storage/gge/Alejandro/WTC11/Illumina/trimmed/SJ/"
 SQ_utilities="/home/apadepe/lr_pipelines/sqanti_versions/lrgasp-challenge-3-evaluation/utilities/"
 SQ_folder="/home/apadepe/lr_pipelines/sqanti_versions/lrgasp-challenge-3-evaluation/"
 BUSCO_dir="/home/apadepe/TFM/BUSCO/busco_downloads"
+BLAST_DB="/storage/gge/Alejandro/mammalian_proteins/blastDB/mammalian"
 
 # ARGS
 sqanti_output_dir=$1 # Directorio de salida de los output de SQANTI3
@@ -37,14 +38,14 @@ source activate busco
 # Uno de los criterios para filtrar es que la prteína tenga hits de blast
 # en el proteoma de mamíferos con al menos un 80% de cobertura
 echo "BLAST frente al proteoma de referencia de mamifero:"
-blastp -query $sqanti_output_dir/*.faa -db $BLAST_DB -out $out_dir/blastp_out.txt \
-    -evalue 1e-50 \
-    -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen" \
-    -num_alignments 3 -num_threads 4 
+#blastp -query $sqanti_output_dir/*.faa -db $BLAST_DB -out $out_dir/blastp_out.txt \
+#    -evalue 1e-50 \
+#    -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen" \
+#    -num_alignments 3 -num_threads 8 
 
 conda activate lrgasp2
 Rscript $utilities/filterClassification.R $sqanti_output_dir $sqanti_prefix $out_dir \
-    $out_dir $out_dir/blastp_out.txt $4
+    $out_dir/blastp_out.txt $4
 
 # Filtrado del sam del mapeo de los tránscritos a partir del classification
 echo "Filtrado y ordenado del sam:"

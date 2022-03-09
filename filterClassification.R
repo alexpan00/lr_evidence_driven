@@ -33,7 +33,7 @@ filtered_clasification <- classification %>%
   filter(predicted_NMD == "FALSE") %>%  # Que no tengan señales de NMD
   filter(perc_A_downstream_TTS < 60) %>% # Que no sean candidatos de tener intrapriming
   filter(all_canonical == "canonical") %>% # Que todas las SJ sean canónicas
-  filter(CDS_length > 300) %>% # Longitud del CDS > 300 (100 aa)
+  filter(CDS_length > 300) # Longitud del CDS > 300 (100 aa)
 
 # Filtrado en funcion de la cobertura de las SJ del classification   
 filtered_clasification <- filtered_clasification %>%  
@@ -71,12 +71,12 @@ blast_85 <- blast_top3h_summary %>%
 # Si la tecnologia es PB se filtra solo en funcion de los hits de blast, si la
 # tecnologia es ONT o ONT + PB tambien se filtra en funcion de el numero de reads
 if (tecnologia == "PB"){
-  filtered_clasification <- filtered_classification %>% 
+  filtered_clasification <- filtered_clasification %>% 
     filter(isoform %in% blast_85$V1)
 } else{
-  filtered_clasification <- filtered_classification %>% 
+  filtered_clasification <- filtered_clasification %>% 
     filter(isoform %in% blast_85$V1) %>% 
-    filter(FL > quantile(filtered_clasification$FL, th))
+    filter(FL > quantile(classification$FL, th))
 }
 
 # Plot del número de exones antes y después del filtrado
