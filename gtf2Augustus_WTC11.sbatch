@@ -31,7 +31,7 @@ source activate busco
 
 # PATH
 utilities="/home/apadepe/utilities/"
-genoma="/home/apadepe/practicas/reference_human/chr19.fa"
+chr19="/home/apadepe/practicas/reference_human/chr19.fa"
 ref="/home/apadepe/practicas/reference_human/chr19_CDS_LO.gtf"
 
 # Parámetros
@@ -120,7 +120,7 @@ do
     # Modificación de los parametros de la especie con la frecuencia adecuada
     python3 ${utilities}modify_SC_freq.py ${arrIN[0]}_SC_freq.txt ${arrIN[0]}
     # Correr Augustus con el set de prueba 
-    augustus --species=${arrIN[0]} $genoma --protein=off > ${arrIN[0]}.gtf
+    augustus --species=${arrIN[0]} $chr19 --protein=off > ${arrIN[0]}.gtf
     date
 done
 mkdir filtered_subsets/
