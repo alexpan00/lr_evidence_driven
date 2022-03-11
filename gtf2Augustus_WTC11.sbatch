@@ -5,7 +5,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --cpus-per-task=1 # Number of tasks = cpus
 #SBATCH --mem-per-cpu=30gb # Job memory request
-#SBATCH --time=0-12:00:00 # Time limit days-hrs:min:sec
+#SBATCH --time=0-24:00:00 # Time limit days-hrs:min:sec
 #SBATCH --output=Augustus_subsets.log # Standard output and error log
 
 # Script para ir desde un gff/gtf hasta correr Augustus para distintos tamaños
