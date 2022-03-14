@@ -17,7 +17,7 @@ def main():
     l_records = []
     for archivo in archivos:
         if archivo.endswith("faa"):
-            record = SeqIO.read(path + archivo, "fasta")
+            record = SeqIO.read(path + "/" + archivo, "fasta")
             record.id = archivo.split(".")[0]
             record.description = archivo.split(".")[0]
             l_records.append(record)

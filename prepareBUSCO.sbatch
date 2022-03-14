@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=4 # Number of tasks = cpus
 #SBATCH --mem-per-cpu=12gb # Job memory request
 #SBATCH --time=0-24:00:00 # Time limit days-hrs:min:sec
-#SBATCH --output=preapare_busco.log # Standard output and error log
+#SBATCH --output=prepare_busco.log # Standard output and error log
 
 # PATHS
 utilities="/home/apadepe/utilities"
@@ -29,7 +29,7 @@ cd-hit -o complete_buscos.cdhit -c 0.8 -i complete_buscos.faa -p 1 -d 0 -T 4 -M 
 grep ">" complete_buscos.cdhit | cut -f2 -d">" | cut -f1 > cdhit.lst
 
 # Concatenar los gff de los genes que se han mantenido después del colapso
-python $utilities/concateanteGFF.py cdhit.lst $busco_gff
+python $utilities/concatenateGFF.py cdhit.lst $busco_gff
 
 
 
