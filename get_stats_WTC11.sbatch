@@ -50,7 +50,7 @@ do
     exon_sn=$(grep Exon $file | cut -f 2 | cut -f2 -d " ")
     exon_sp=$(grep Exon $file | cut -f 3 | cut -f2 -d " ")
     gene_sn=$(grep Transcript $file | cut -f 2 | cut -f2 -d " ")
-    gene_sp=$(grep Transcript $file | cut -f 3 | cut -f2 -d " ")
+    gene_sp=$(grep Transcript $file | cut -f 3 | cut -f3 -d " ")
     identity=$(awk '{s+=$3} END {print s}' $(echo $file | cut -f1 -d".").identity)
     N_aligments=$(wc -l $(echo $file | cut -f1 -d".").identity | cut -f1 -d " ")
     identity=$(echo "scale=2; $identity/$N_aligments" | bc)
