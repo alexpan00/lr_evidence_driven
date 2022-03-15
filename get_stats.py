@@ -15,7 +15,7 @@ def parse_stats(f_in: str)-> str:
     stats = [0]*6
     with open(f_in, "r") as stats_file:
         for line in stats_file:
-            if not line.startswith("#"):
+            if not line.startswith("#") and len(line) > 1:
                 ll = line.split()
                 if ll[0] == "Base":
                     stats[0] = ll[2]
@@ -26,6 +26,7 @@ def parse_stats(f_in: str)-> str:
                 if ll[0] == "Transcript":
                     stats[4] = ll[2]
                     stats[5] = ll[3]
+                    break
     stats_str = "\t".join(stats)
     return stats_str
 
@@ -62,7 +63,7 @@ def main():
             # Get number of genes
             n_genes = file.split("_")[1]
             # Get Sn and Pr
-            stats = parse_stats(file)
+            stats = parse_stats(args.wd + "/" + file)
             # Get identity
             identity_stats = parse_identity(args.wd + "/" + base_name + ".identity")
             complete_info = n_genes + "\t" + stats + "\t" + identity_stats

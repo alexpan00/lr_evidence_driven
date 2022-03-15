@@ -46,7 +46,7 @@ def alingment(seq1, seq2):
     for i in range(len(m)):
         identidad += m[i, i]
     seq_len = max(len(seq1.seq), len(seq2.seq))
-    identity_percentage = (identidad/seq_len)*100
+    identity_percentage = str((identidad/seq_len)*100)
     return [seq1.id, seq2.id, identity_percentage]
     
 
@@ -69,7 +69,7 @@ def main():
     alignment_list = track_parser(args.track, query_dict, ref_dict)
     
     # write the results to output file
-    f_out = open(args.f_out, "w")
+    f_out = open(args.out, "w")
     for alignment in alignment_list:
         f_out.write("\t".join(alignment) + "\n")
     f_out.close()
