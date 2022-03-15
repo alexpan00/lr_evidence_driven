@@ -38,21 +38,5 @@ do
    
 done 
 
-cd cuffcompare_results
-echo -e "N_genes"'\t'"nt_sn"'\t'"nt_sp"'\t'"exon_sn"'\t'"exon_sp"'\t'"gene_sn"'\t'"gene_sp"'\t'"identity" > summary.tsv
-
-# Get the stats from the cuffcompare output files
-for file in *.stats
-do
-    N_genes=$(echo $file | cut -f1 -d"." | cut -f2 -d"_")
-    nt_sn=$(grep Base $file | cut -f 2 | cut -f2 -d " ")
-    nt_sp=$(grep Base $file | cut -f 3 | cut -f2 -d " ")
-    exon_sn=$(grep Exon $file | cut -f 2 | cut -f2 -d " ")
-    exon_sp=$(grep Exon $file | cut -f 3 | cut -f2 -d " ")
-    gene_sn=$(grep Transcript $file | cut -f 2 | cut -f2 -d " ")
-    gene_sp=$(grep Transcript $file | cut -f 3 | cut -f3 -d " ")
-    identity=$(awk '{s+=$3} END {print s}' $(echo $file | cut -f1 -d".").identity)
-    N_aligments=$(wc -l $(echo $file | cut -f1 -d".").identity | cut -f1 -d " ")
-    identity=$(echo "scale=2; $identity/$N_aligments" | bc)
-    echo -e "$N_genes"'\t'"$nt_sn"'\t'"$nt_sp"'\t'"$exon_sn"'\t'"$exon_sp"'\t'"$gene_sn"'\t'"$gene_sp"'\t'"$identity"  >> summary.tsv
-done
+# Generate the summary file
+python ${utilities}get_stats.py `pwd`/cuffcompare_results
