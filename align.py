@@ -15,7 +15,7 @@ from Bio.Align import substitution_matrices
 
 def track_parser(track: str, query_dict:dict, ref_dict: dict)-> list:
     '''
-    Reading of the tracker file and genrarintg alingments
+    Reading of the tracking file and genrarintg alingments
     '''
     # To align proteins the relation between transcripts must be in the 
     # accepted list
@@ -58,8 +58,12 @@ def main():
     parser.add_argument("out")
     args = parser.parse_args()
     # Reading fasta file into dictionary
+    print("Query lenght:")
     query_dict = SeqIO.to_dict(SeqIO.parse(args.query, "fasta"))
+    print(len(query_dict))
+    print("Reference lenght:")
     ref_dict = SeqIO.to_dict(SeqIO.parse(args.ref, "fasta"))
+    print(len(ref_dict))
 
     # Reading cuffcompare tracking file and alignment
     alignment_list = track_parser(args.track, query_dict, ref_dict)

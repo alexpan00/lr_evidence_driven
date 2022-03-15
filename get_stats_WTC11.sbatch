@@ -10,7 +10,7 @@
 
 source activate cgat
 # PATHS
-anotacion="/home/apadepe/practicas/reference_human/chr19_CDS_LO.gtf"
+anotacion="/home/apadepe/practicas/reference_human/modificado_chr19_CDS_LO.gtf"
 genoma="/home/apadepe/practicas/reference_human/chr19.fa"
 ref_prot="/home/apadepe/practicas/reference_human/chr19_transcripts.faa"
 utilities="/home/apadepe/utilities/"
@@ -24,10 +24,12 @@ for file in *.gtf
 do
     arrIN=(${file//./ })
     # Compare to the reference
-    cuffcompare -e 0 -d 0 -o cuffcompare_results/${arrIN[0]} -r $anotacion $file
+    cuffcompare -e 0 -d 0 -T -o cuffcompare_results/${arrIN[0]} -r $anotacion $file
     # Generate de faa file from the AUGUSTUS gtf 
+    conda activate cgat
     agat_sp_extract_sequences.pl --gff $file -f $genoma -p \
         -o cuffcompare_results/${arrIN[0]}.faa
+    sed -i 's/'*'//g' cuffcompare_results/${arrIN[0]}.faa
     # Generate the alignents
     conda activate SQANTI3.env
     python ${utilities}align.py cuffcompare_results/${arrIN[0]}.tracking \
