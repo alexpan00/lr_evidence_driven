@@ -28,6 +28,7 @@ def track_parser(track: str, query_dict:dict, ref_dict: dict)-> list:
                 ref_id = ll[2].split("|")[1]
                 query_id = ll[4].split("|")[2]
                 ref_seq = ref_dict[ref_id]
+                print(query_id)
                 query_seq = query_dict[query_id]
                 aligment_list.append(alingment(ref_seq, query_seq))
     return aligment_list

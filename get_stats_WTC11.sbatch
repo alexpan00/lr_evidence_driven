@@ -51,7 +51,7 @@ do
     exon_sp=$(grep Exon $file | cut -f 3 | cut -f2 -d " ")
     gene_sn=$(grep Transcript $file | cut -f 2 | cut -f2 -d " ")
     gene_sp=$(grep Transcript $file | cut -f 3 | cut -f2 -d " ")
-    identity=$(awk '{s+=$3} END {print s}' $(echo $file | cut -f1 -d"."))
+    identity=$(awk '{s+=$3} END {print s}' $(echo $file | cut -f1 -d".").identity)
     N_aligments=$(wc -l $(echo $file | cut -f1 -d".").identity | cut -f1 -d " ")
     identity=$(echo "scale=2; $identity/$N_aligments" | bc)
     echo -e "$N_genes"'\t'"$nt_sn"'\t'"$nt_sp"'\t'"$exon_sn"'\t'"$exon_sp"'\t'"$gene_sn"'\t'"$gene_sp"'\t'"$identity"  >> summary.tsv
