@@ -12,7 +12,7 @@ source activate cgat
 # PATHS
 anotacion="/home/apadepe/practicas/reference_human/chr19_CDS_LO.gtf"
 genoma="/home/apadepe/practicas/reference_human/chr19.fa"
-ref_prot="/home/apadepe/practicas/reference_human/"
+ref_prot="/home/apadepe/practicas/reference_human/chr19_transcripts.faa"
 utilities="/home/apadepe/utilities/"
 
 # Go to working directory
@@ -29,6 +29,7 @@ do
     agat_sp_extract_sequences.pl --gff $file -f $genoma -p \
         -o cuffcompare_results/${arrIN[0]}.faa
     # Generate the alignents
+    conda activate SQANTI3.env
     python ${utilities}align.py cuffcompare_results/${arrIN[0]}.tracking \
         cuffcompare_results/${arrIN[0]}.faa $ref_prot \
         cuffcompare_results/${arrIN[0]}.identity
