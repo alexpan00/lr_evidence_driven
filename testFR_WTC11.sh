@@ -1,6 +1,6 @@
 #!/bin/bash
-# Wrapper del script gff2Augustus.sbatch para iniciar varios jobs con
-# distintas longitudes de la región flanqueante
+# Wrapper of the script gff2Augustus.sbatch to initialize multiple jobs
+# with different lenghts of the flanking region
 
 # Parámetros
 gff=$1      # gff/gtf con los modelos de los genes de confianza
@@ -28,6 +28,6 @@ do
     echo "Flanking region $i"
     sbatch --output AUGUSTUS_fr$i.log --job-name=AUGUSTUS_fr$i \
     ${utilities}gtf2Augustus_WTC11.sbatch $gff $genoma \
-    $i $out_dir/fr$i ${out_name}_fr$i
+    $i $out_dir/fr$i ${out_name}_fr$i $seed
   
 done        

@@ -134,6 +134,6 @@ mkdir first_train
 mkdir second_train
 mv *.f.out second_train/
 mv *etrain.out first_train/
-echo "Generaación del resumen y plots"
-#bash ${utilities}get_stats.sh `pwd`
+echo "Generating summary:"
+sbatch ${utilities}get_stats_WTC11.sbatch `pwd`
 #Rscript ${utilities}plots.R `pwd` $out_name

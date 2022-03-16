@@ -24,18 +24,25 @@ for file in *.gtf
 do
     arrIN=(${file//./ })
     # Compare to the reference
+    echo "Comparing $file"
+    date
     cuffcompare -e 0 -d 0 -T -o cuffcompare_results/${arrIN[0]} -r $anotacion $file
     # Generate de faa file from the AUGUSTUS gtf 
+    date
     conda activate cgat
+    echo "Generating protein sequences"
     agat_sp_extract_sequences.pl --gff $file -f $genoma -p \
         -o cuffcompare_results/${arrIN[0]}.faa > chapa.txt
     sed -i 's/'*'//g' cuffcompare_results/${arrIN[0]}.faa
     # Generate the alignents
     conda activate SQANTI3.env
+    echo "Aligning compatible proteins"
+    date
     python ${utilities}align.py cuffcompare_results/${arrIN[0]}.tracking \
         cuffcompare_results/${arrIN[0]}.faa $ref_prot \
         cuffcompare_results/${arrIN[0]}.identity
-   
+    echo "Alingment of sample $file finished"
+    date
 done 
 
 # Generate the summary file
