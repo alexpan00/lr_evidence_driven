@@ -28,7 +28,7 @@ do
     # Generate de faa file from the AUGUSTUS gtf 
     conda activate cgat
     agat_sp_extract_sequences.pl --gff $file -f $genoma -p \
-        -o cuffcompare_results/${arrIN[0]}.faa
+        -o cuffcompare_results/${arrIN[0]}.faa > chapa.txt
     sed -i 's/'*'//g' cuffcompare_results/${arrIN[0]}.faa
     # Generate the alignents
     conda activate SQANTI3.env
