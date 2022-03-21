@@ -5,7 +5,7 @@ then
     echo -e "\tgtf/gff"
     echo -e "\tUTR (TRUE/FALSE)"
     echo -e "\tSource (M,PB,...)"
-    echo -e "\tchromosome"
+    echo -e "\tchromosome (optional) Do only for one chromosome ej: chr19"
     exit 0
 fi
 
@@ -16,7 +16,7 @@ source activate busco
 # PATH
 utilities="/home/apadepe/utilities/"
 
-# Parámetros
+# INPUTS
 gff=$1      # gtf to be converted to hits
 utr=$2      # include or exclude utr
 src=$3      # Source of the information (M,PB)
