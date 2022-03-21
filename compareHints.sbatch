@@ -47,7 +47,7 @@ do
     # Start the prediction
     augustus --species=$model --extrinsicCfgFile=$cfg --hintsfile=$hint \
     $genome --protein=off --softmasking=off > \
-    $out_dir/hints_${sources_str}_${species}.gtf
+    $out_dir/hints_${sources_str}_${model}.gtf
     echo "Prediction finished"
     date
 done < $source_config
