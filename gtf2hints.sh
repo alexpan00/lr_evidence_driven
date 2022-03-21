@@ -20,10 +20,12 @@ utilities="/home/apadepe/utilities/"
 gff=$1      # gtf to be converted to hits
 utr=$2      # include or exclude utr
 src=$3      # Source of the information (M,PB)
-chr=$4      # Do for only one chromosome
-wd=$5
-name=$6
-if [ -z "$4" ]
+wd=$4       # Working directory
+name=$5     # Name for the output
+chr=$6      # Do for only one chromosome
+
+cd $wd
+if [ -n "$chr" ]
 then
     grep $chr $gff > tmp.gff
     gff="tmp.gff"
@@ -39,7 +41,7 @@ else
 fi
 rm tmp.gff
 sed -i 's/gene_id \"/grp=/g' tmp2.gff
-cut -f1 -d'"' tmp2.gff | sed 's/$/;pri=1;src=M/g'
-mv tmp2 $name.hits.gff
+cut -f1 -d'"' tmp2.gff | sed 's/$/;pri=1;src=M/g' > $name.hits.gff
+rm tmp2.gff
 
 
