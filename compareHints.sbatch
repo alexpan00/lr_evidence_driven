@@ -32,7 +32,7 @@ then
 fi
 
 source activate busco
-#mkdir $out_dir
+mkdir $out_dir
 # Read the configurarion file
 while read -r line
 do

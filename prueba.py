@@ -1,4 +1,5 @@
-import random
-random.seed(12)
-randomlist = random.sample(range(0, 10), 10)
-print(randomlist)
+import subprocess
+process = subprocess.run(['wc', '-l', 'prueba.py'], 
+                        stdout=subprocess.PIPE, 
+                        universal_newlines=True)
+print(process.stdout.split()[0])

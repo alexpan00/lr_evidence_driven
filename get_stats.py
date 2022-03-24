@@ -6,6 +6,7 @@ same directory and generate a file ith all the stats
 import argparse
 import os
 import statistics
+import subprocess
     
 
 def parse_stats(f_in: str)-> str:
@@ -47,6 +48,29 @@ def parse_identity(f_in:str)-> str:
 
     return identity_stats
 
+def get_FP(base_name: str)-> str:
+    '''
+    Return the number of false positives, this is the number of genes that
+    could't be related to any gene in the reference
+    '''
+    # Count lines in the tracking file (total number of genes)
+    tracking_file = subprocess.run(["wc", "-l", base_name + ".tracking"], 
+                        stdout=subprocess.PIPE, 
+                        universal_newlines=True)
+    total_genes = int(tracking_file.stdout.split()[0])
+
+    # Count the number of lines in the identity file 
+    # (genes matched to reference)
+    identity_file = subprocess.run(["wc", "-l", base_name + ".identity"],
+                        stdout=subprocess.PIPE, 
+                        universal_newlines=True)
+    mached_genes = int(identity_file.stdout.split()[0])
+
+    # The difference between the two is the number of FP
+    false_positives = total_genes - mached_genes
+    return str(false_positives)
+
+    
 
 def main():
     parser = argparse.ArgumentParser()
@@ -55,7 +79,7 @@ def main():
 
     files = os.listdir(args.wd)
     f_out = open(args.wd + "/summary.tsv", "w")
-    f_out.write("N_genes\tnt_sn\tnt_sp\texon_sn\texon_sp\tgene_sn\tgene_sp\tmean_identity\tmedian_identity\tPH\n")
+    f_out.write("N_genes\tnt_sn\tnt_sp\texon_sn\texon_sp\tgene_sn\tgene_sp\tmean_identity\tmedian_identity\tPH\tFP\n")
     for file in files:
         if file.endswith(".stats"):
             # Get file basename
@@ -66,7 +90,9 @@ def main():
             stats = parse_stats(args.wd + "/" + file)
             # Get identity
             identity_stats = parse_identity(args.wd + "/" + base_name + ".identity")
-            complete_info = n_genes + "\t" + stats + "\t" + identity_stats
+            # Get FP
+            false_positives = get_FP(base_name)
+            complete_info = n_genes + "\t" + stats + "\t" + identity_stats + "\t" +false_positives
             f_out.write(complete_info + "\n")
     f_out.close()
 
