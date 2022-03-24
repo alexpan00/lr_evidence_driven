@@ -32,13 +32,14 @@ then
 fi
 
 source activate busco
-mkdir $out_dir
+#mkdir $out_dir
 # Read the configurarion file
 while read -r line
 do
     arrIN=(${line//,/ })
     hint=${arrIN[0]}
     cfg=${arrIN[1]}
+    tec=${arrIN[2]}
     date
     echo "Using $hint as hints for the prediction"
     SOURCES=$(grep -n SOURCES $cfg | cut -f1 -d":" | head -n 1)
@@ -47,7 +48,7 @@ do
     # Start the prediction
     augustus --species=$model --extrinsicCfgFile=$cfg --hintsfile=$hint \
     $genome --protein=off --softmasking=off > \
-    $out_dir/hints_${sources_str}_${model}.gtf
+    $out_dir/hints_${tec}_${sources_str}_${model}.gtf
     echo "Prediction finished"
     date
 done < $source_config
