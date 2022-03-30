@@ -15,6 +15,7 @@ genoma="/home/apadepe/practicas/reference_human/chr19.fa"
 ref_prot="/home/apadepe/practicas/reference_human/new_chr19/chr19_transcripts.faa"
 utilities="/home/apadepe/utilities/"
 
+# TO DO: get alternatives for running as array and as indiviual jobs
 # Go to working directory
 wd=$(sed -n ${SLURM_ARRAY_TASK_ID}p $1)
 cd $wd
