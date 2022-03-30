@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=1 # Number of tasks = cpus
 #SBATCH --mem-per-cpu=12gb # Job memory request
 #SBATCH --time=0-08:00:00 # Time limit days-hrs:min:sec
-#SBATCH --output=Stats.log # Standard output and error log
+#SBATCH --output=Stats_%A-%a.log # Standard output and error log
 
 source activate cgat
 # PATHS
@@ -16,9 +16,10 @@ ref_prot="/home/apadepe/practicas/reference_human/new_chr19/chr19_transcripts.fa
 utilities="/home/apadepe/utilities/"
 
 # Go to working directory
-cd $1
+wd=$(sed -n ${SLURM_ARRAY_TASK_ID}p $1)
+cd $wd
 # Make an ouput folder for the results
-mkdir cuffcompare_results
+#mkdir cuffcompare_results
 # Read the gtf files
 for file in *.gtf
 do

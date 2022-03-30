@@ -91,7 +91,7 @@ def main():
             # Get identity
             identity_stats = parse_identity(args.wd + "/" + base_name + ".identity")
             # Get FP
-            false_positives = get_FP(base_name)
+            false_positives = get_FP(args.wd + "/" + base_name)
             complete_info = n_genes + "\t" + stats + "\t" + identity_stats + "\t" +false_positives
             f_out.write(complete_info + "\n")
     f_out.close()
