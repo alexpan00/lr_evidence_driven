@@ -1,10 +1,10 @@
 '''
-Script para generar una serie de subsets de tamaño especificado por el 
-usuario a partir de un fichero genebank
+Script to generate gubsets of a GeneBank file of a desired size 
 
-El subset de tamaño más grande será igual al de tamaño más pequeño más un 
-número de genes (Los subsets pequeños son subsets de los grandes)
+The biggest subset is equal to the subset of a smaller size plus some
+more genes. (The smaller subsets are subsets of the bigger subsets)
 '''
+
 
 import random
 import argparse
@@ -12,15 +12,31 @@ import argparse
 
 class gene:
     '''
-    Clase para almacenar la infroamción de genes en formato GeneBank
+    Class to store the information of a gene in GeneBank format
+
+    Attributes:
+    -----------
+        locus (str): gene name plus some extra information
+        features (str): CDS positions
+        base_count (str): number of nucleotides
+        origin (str): sequence
+    
+    Methods:
+    --------
+        __str__: convert the gene object to a str
+        get_gene_id: get the gene id
     '''
     def __init__(self, locus, features, base_count, origin) -> None:
         self.locus = locus
         self.features = features
         self.base_count = base_count
         self.origin = origin
+
+
     def __str__(self) -> str:
         return self.locus + self.features + self.base_count + self.origin
+
+
     def get_gene_id(self)-> str:
         gene_line = self.features.split("\n")[-2]
         gene_id = gene_line.lstrip(' /gene="')
@@ -29,72 +45,92 @@ class gene:
 
 def parse_gb(f_in: str)-> list:
     '''
-    Lee el gb completo y convierte los genes a la clase gen. Almacena los 
-    genes en una lista.
+    Function to parse a GeneBank file and convert every gene in an object
+    of gene class. Save all the genes in a list
+    
+    Inputs:
+        f_in (str): path to GeneBank file
+    
+    Outputs:
+        l_gb (list): list of gene objects
     '''
-    # Lista de campos de una entrada en formato gb
+    # List of the fild of a gene in GeneBank format
     l_campos = []
-    # Lista de genes
+    # List of genes
     l_gb = []
-    # Campo del archivo gb que se está leyendo
+    # Index of the fild that is being read
     indice = 0
     with open(f_in, "r") as gb_file:
         for linea in gb_file:
-            # LOCUS es el primer campo. Si ya había una entrada se pasa de la 
-            # lista a la clase gen y se vacía la lista
+            # LOCUS is the first fild. If a list of filds already exists
+            # convert the list to gene object
             if linea.startswith("LOCUS"):
-
                 if l_campos:    
-                    gene_aux = gene(l_campos[0], l_campos[1], l_campos[2], l_campos[3])
+                    gene_aux = gene(l_campos[0], 
+                                    l_campos[1], 
+                                    l_campos[2], 
+                                    l_campos[3])
                     l_gb.append(gene_aux)
                     l_campos = list()
                     indice = 0
 
                 if not l_campos:
                     l_campos =["","","",""]
+                    # add LOCUS to its corresponding position in the list
                     l_campos[indice] += linea
-            # Al leer features se cambia el indice a 1
+            # When FEATURES is read change index to 1
             elif linea.startswith("FEATURES"):
                 indice = 1
+                # Add FEATURES to it corresponding position in the list
                 l_campos[indice] += linea
-            # Al leer BASE se cambia el indice a 2
+            # When BASE is read change index to 2
             elif linea.startswith("BASE"):
                 indice = 2
+                # Add BASE to it corresponding position in the list
                 l_campos[indice] += linea
-            # Al leer ORIGIN se cambia el indice a 3
+            # When ORIGIN is read change index to 3
             elif linea.startswith("ORIGIN"):
                 indice = 3
+                # Add ORIGIN to it corresponding position in the list
                 l_campos[indice] += linea
-            # Las lineas que no empiezan por ninguna de las anteriores se
-            # guardan en la posición de la lista correspondiente al indice
-            # que estuviera definido previamente
+            # When the line in the GeneBank file doesn't start with any of
+            # the previous str add the line to the saved index 
             else:
                 l_campos[indice] += linea
 
-        # Hay que guardar el último gen al salir del bucle
+        # Save the last gene
         gene_aux = gene(l_campos[0], l_campos[1], l_campos[2], l_campos[3])
         l_gb.append(gene_aux)
 
         return l_gb
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("genebank")
-    parser.add_argument("out_name")
-    parser.add_argument("out_dir")
-    parser.add_argument('-l', '--list', help='delimited list input', type=str)
-    parser.add_argument("--seed", help="seed", nargs='?', type=int, const=123, default=123)
+    parser = argparse.ArgumentParser(description="Generate subsets of a GeneBank")
+    parser.add_argument("genebank", help="path to the GeneBank file")
+    parser.add_argument("out_name", help="Name for the output wo/ extension")
+    parser.add_argument("out_dir", help="path to write the outputs")
+    parser.add_argument('-l', '--list', 
+                        help='list of the subset sizes separated with ","', 
+                        type=str)
+    parser.add_argument("--seed", 
+                        help="seed", 
+                        nargs='?', type=int, const=123, default=123)
 
     args = parser.parse_args()
-    # Generar una lista con los genes
+    # Read the GeneBank file and generate a list of gene objects
     l_gb = parse_gb(args.genebank)
-    # Generar una lista aleatoria con los núemros de los genes que 
-    # se incluirán en el test
-    random.seed(args.seed)
-    n_genes = [int(item) for item in args.list.split(',')]
 
-    # Generar una lista random para samplear los genes
+    # Generate a random list with the number of genes of each subset
+    n_genes = [int(item) for item in args.list.split(',')]
+    
+    # Set the seed
+    random.seed(args.seed)
+    
+    # Generate a random list of int to use as index of the list of genes
+    # and sample those genes
     randomlist = random.sample(range(0, n_genes[-1]), n_genes[-1])
+    
+    # Generate all the subsets
     for i in n_genes:
         with open(args.out_dir \
                   + "/results/subset_" \
@@ -102,6 +138,7 @@ def main():
                   + "_" + args.out_name \
                   + ".gb", "w") as f_out:
             for j in range(i):
+                # Use the random lsit to sample the genes
                 f_out.write(str(l_gb[randomlist[j]]))
             
 if __name__=="__main__":

@@ -8,20 +8,28 @@
 #SBATCH --time=0-12:00:00 # Time limit days-hrs:min:sec
 #SBATCH --output=Augustus_subsets.log # Standard output and error log
 
-# Script para ir desde un gff/gtf hasta correr Augustus para distintos tamaños
-# de set de entreanmiento, longitudes de la FR y generar los plots
+# Script to run AUGUSTUS from a gtf/gff file using different sizes for the
+# training set, length of the flanking regions and generate plots from the
+# results.
 
-# Comprobar los argumentos que se le han pasado al script
-if [ -z "$1" ] || [ $1 == '-h' ]
+# This script is focused in testing how the number of genes of the training 
+# sets, the length of the flanking region and the different data used to
+# train the model affect the results. The predictions are run on a subset of
+# the genes used for training to evaleute the different models.
+
+# Check the args
+if [ -z "$1" ] || [ $1 == '-h' ] || [ $1 == '--help' ]
 then
-    echo "Argumentos esperados:"
+    echo "Script to run AUGUSTUS from a gtf/gff file using different sizes"
+    echo "for the training set, length of the flanking regions and generate"
+    echo "plots from the results"
+    echo "Expected args:"
     echo -e "\tgtf/gff"
-    echo -e "\tgenoma"
-    echo -e "\tlongitud de la región flanqeante"
-    echo -e "\tdirectorio de salida (no debe existir)"
-    echo -e "\tnombre de los ficheros de salida"
-    # echo -e "\ttamño de los subsets de entranamiento (ej. 200,1000,1500)"
-    echo -e "\tsemilla para genrar los sets (opcional, valor por defecto = 123)"
+    echo -e "\tgenome"
+    echo -e "\tlength of the flanking region"
+    echo -e "\toutput dir (will be created)"
+    echo -e "\tname for the output files"
+    echo -e "\tseed to generate random subsets (default = 123)"
     exit 0
 fi
 
@@ -32,98 +40,99 @@ source activate busco
 # PATH
 utilities="/home/apadepe/utilities/"
 
-# Parámetros
-gff=$1      # gff/gtf con los modelos de los genes de confianza
-genoma=$2   # genoma de referencia
-fr=$3       # longitud de la región flanqueante para el formato GB
-out_dir=$4  # Directorio de trabajo
-out_name=$5 # Nombre para la especie y los fichero de salida
-#subsets=$6 # Tamaño de los subsets de entrenamiento
-seed=$6     # semilla para la generación de lso subsets
+# Inputs
+gff=$1      # gff/gtf with the reliable genes to train the model
+genoma=$2   # reference genome
+fr=$3       # length of the flanking region
+out_dir=$4  # output dir
+out_name=$5 # Name for the species and output files
+seed=$6     # seed to generate subsets
 
 
 # Run info
-echo "Genoma: $genoma"
+echo "Run info: "
+echo "Genome: $genoma"
 echo "GTF/GFF: $gff"
-echo "Longitud de la región flanqueante: $fr"
-#echo "Tamaño de los conjuntos de entrenamiento: $subsets"
-echo "Directorio de salida: $out_dir"
-echo "Nombre del los fichero se salida: $out_name"
-if [ -z "$7" ]
+echo "Length of the flanking region: $fr"
+echo "Output dir: $out_dir"
+echo "Name for the outputs: $out_name"
+if [ -z "$6" ]
 then
     echo "Semilla: 123"
 else
     echo "Semilla: $seed"
 fi
 
-# Crear el directorio de salida
+# Create the outputs dir
 mkdir $out_dir
 
-# Generación del archvio en formato gb
-echo "Creación del archivo en formato GeneBank"
+# From gtf to genebank format adding the flanking regions
+echo "Create the file in GeneBank format"
 gff2gbSmallDNA.pl $gff $genoma $fr $out_dir/$out_name.gb
 
-# Generación del set de entranemiento
-# Esto podría cambiarse por un script que genere set random de verdad para 
-# poder hacer bootstrap
+# Generate the training and testing sets
 cd $out_dir
 mkdir results
-echo "Generación de los conjuntos de prueba y entranamiento"
+echo "Generate the training and testing sets:"
 randomSplit.pl $out_name.gb 500
 mv $out_name.gb.test results/${out_name}_test.gb
 mv $out_name.gb.train ${out_name}_train.gb
 
-# Generación de los subsets a partir del set de entrenamiento
-echo "Generación se los subconjuntos de entrenameinto"
+# Generate the subsets for training
+echo "Generate the training subsets:"
 
-# Cálculo del tamaño de los subsets
+# Get subset sizes
 subsets=$(python3 ${utilities}autosubsets.py `grep -c LOCUS ${out_name}_train.gb`)
 
-echo "tamaño de los subsets: $subsets"
+echo "Subsets sizes: $subsets"
 python3 ${utilities}generate_subsets.py ${out_name}_train.gb $out_name `pwd`/\
     -l $subsets --seed $seed
 cd results
 
-echo "Entrenamiento de los modelos"
-# Script para la creación de una nueva especie en Augustus
+echo "Train the models using the subsets:"
+echo "Initial training and filtering of wrongly defined genes"
+date
+# Script to generate a new species in AUGUSTUS
 for file in *.gb
 do
     echo $file
     arrIN=(${file//./ })
     new_species.pl --species=${arrIN[0]}
-    # Primera run the etraining, servirá para comprobar si los codones de stop
-    # forman parte de las cds
-    # Se corre el etraining
+    # First estraining run, will be used to check if stop codons are part of
+    # the CDS
     etraining --species=${arrIN[0]} $file &> ${arrIN[0]}_etrain.out
 
-    # Se checkea en el output cuantos genes no tienen StopCodon
+    # Check if the Stop codon is missing in the genes
     echo "NO stop codon:"
     grep -c "Variable stopCodonExcludedFromCDS set right" ${arrIN[0]}_etrain.out
 
-    # Para ello creo una lista con los genes problemáticos bad.lst
+    # Remove the genes missing the stop codon, generate a lsit with the genes
+    # to be removed
     grep "in sequence" ${arrIN[0]}_etrain.out | cut -f7 -d" " | sed s/://g | sort -u > ${arrIN[0]}_bad.lst
 
-    # Se usa la lista para filtrar los genes
+    # Use the lsit to filter the GeneBank file
     filterGenes.pl ${arrIN[0]}_bad.lst $file > ${arrIN[0]}.f.gb
 done
+date
 
-# Una vez que se tiene los archivos con los genes filtrados se entrena los modelos
-echo "Testeo de los modelos"
+# Once the initial files are filtered the model is trainned again and tested
+echo "Testing of the models"
 for file in subset*.f.gb
 do
     echo $file
     date
     arrIN=(${file//./ })
-    # Entrenamiento de los parámetros
+    # Retrain the model with the filtered genes
     etraining --species=${arrIN[0]} $file &> ${arrIN[0]}_etrain.f.out
-    # frecuencia de los codones de stop
+    # Frequency of the different stop codons
     tail -6 ${arrIN[0]}_etrain.f.out | head -3 > ${arrIN[0]}_SC_freq.txt
-    # Modificación de los parametros de la especie con la frecuencia adecuada
+    # Adjsut the frecuency in the configuration file
     python3 ${utilities}modify_SC_freq.py ${arrIN[0]}_SC_freq.txt ${arrIN[0]}
-    # Correr Augustus con el set de prueba 
+    # Run AUGUSTUS using the model 
     augustus --species=${arrIN[0]} ${out_name}_test.f.gb > ${arrIN[0]}.out
     date
 done
+date
 mkdir filtered_subsets/
 mv *.f.gb filtered_subsets/
 mv *.lst filtered_subsets/
@@ -135,6 +144,6 @@ mkdir first_train
 mkdir second_train
 mv *.f.out second_train/
 mv *etrain.out first_train/
-echo "Generaación del resumen y plots"
+echo "Generate summary and plots"
 bash ${utilities}get_stats.sh `pwd`
 Rscript ${utilities}plots.R `pwd` $out_name

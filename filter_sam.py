@@ -1,51 +1,61 @@
 '''
-Este script utiliza un classification filtrado para mantener los tráncritos de
-interés para filtrar un sam con los mapeos correspondiente a dichos
-tránscritos.
+Script that uses a filtered classification file (SQANTI3 output) to filter
+a sam file and keep those transcripts
 '''
 
 import argparse
-from ast import arg
 import os
 
 def parse_classification(classification: str)-> list:
     '''
-    Parsear el archivo clasification para quedarse solo con el nombre de
-    los tránscritos en una lista
+    Function to parse the classification file and keep only the names of the
+    transcripts
+    
+    Input:
+        classification (str): path to the classification file
+    
+    Output:
+        l_trasncripts (list): lsit of the transcripots ids
     ''' 
     l_transcripts = list()
     with open(classification, "r") as f_in:
         for i, linea in enumerate(f_in):
-            # Se parsean todas las lineas menos el header
+            # Parse every line except the header
             if i != 0:
                 
                 ll = linea.split()
-
+                # The trasncript id is the first fild of the line
                 l_transcripts.append(ll[0])
     return l_transcripts
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Filter a SAM")
     # Classification file
-    parser.add_argument("classification")
-    # Fasta file
-    parser.add_argument("sam")
-    parser.add_argument("out_dir")
+    parser.add_argument("classification", 
+                        help="SQANTI classification file")
+    # Sam file
+    parser.add_argument("sam",
+                        help="sam file to be filtered")
+    parser.add_argument("out_dir",
+                        help="path to write the output")
     args = parser.parse_args()
-    # Leer tránscritos del clasification
+    # Read the transcript in the filtered classification file
     l_transcripts = parse_classification(args.classification)
-    # Abrir el sam nuevo
+    # Open the new sam file
     sam_basename = os.path.basename(args.sam)
     f_out = open(args.out_dir + "/" + "filtered_" + sam_basename, "w")
-    # Abrir el sam a filtrar
+    # Open the sam that will be filtered
     with open(args.sam, "r") as f_in:
         for linea in f_in:
-            # Escribir la cabecera del sam
+            # Write the sam header
             if linea.startswith("@"):
                 f_out.write(linea)
-            # Escribir los tránscritos de interés
+            # Write the transcripts
             else:
                 ll = linea.split()
+                # The first fild in the sam line is the transcriot id, if it is
+                # in the list of selected trasncripts it is written to the 
+                # final output
                 if ll[0] in l_transcripts:
                     f_out.write(linea)
     f_out.close()

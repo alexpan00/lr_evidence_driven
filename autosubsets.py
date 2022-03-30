@@ -1,4 +1,7 @@
 '''
+Script to generate the size of the subsets that will be used to train 
+AUGUSTUS
+
 Script para generar los tamaño de los subsets con los que se entrenará a 
 AUGUSTUS
 '''
@@ -9,33 +12,39 @@ from re import sub
 
 def count_transcripts(f_in:str)->int:
     '''
-    Función que permite contar el número de tránscritos de un gtf
+    Function to count the number of transcripts in a gtf file
+    Input:
+        f_in (str): path to the input gtf
+    
+    Output:
+        count (int): number of transcripts in the gtf
     '''
-    contador = 0
+    count = 0
     with open (f_in, "r") as gtf:
         for linea in gtf:
             if linea.split()[2] == "transcript":
-                contador += 1
-    return contador
+                count += 1
+    return count
+
 
 def subset_sizes(total: int)-> list:
     '''
-    Función que determian el tamaño de los subsets en función del número de
-    genes totales disponibles
+    Function to determinate the sizes of the subsets based on the total number
+    of genes
     '''
-    # Si hay menos de 1000 genes se cogen todos
+    # If the number is smaller than 1000 oisck all of them
     if total < 1000:
         subset = [total]
     
-    # Si hay más de 1000 pero menos de 1500
+    # if the total is between 1000 and 1500
     elif total > 1000 and total < 1500:
         subset = [200, 500, 800, 1000]
     
-    # Si hay más de 1500 pero menos de 2000
+    # if the total is between 1500 and 2000
     elif total > 1500 and total < 2000:
         subset = [200, 500, 800, 1000, 1500]
     
-    # A partir de 2000 se inscrmenta de mil en mil hasta 8000
+    # From 2000 increase the number by 1000 to 8000
     elif total > 2000:
         subset = [200, 500, 800, 1000, 1500, 2000]
         while (subset[-1] + 1000) < total and (subset[-1] + 1000) <= 8000:
@@ -44,23 +53,23 @@ def subset_sizes(total: int)-> list:
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Generate trining subset sizes")
     #parser.add_argument("gtf")
-    parser.add_argument("n", type=int)
+    parser.add_argument("n", type=int,
+                        help="Total number of transcripts")
     parser.add_argument("-ts", "--test_size",
                         help="size of the test set",
                         nargs='?', type=int, const=500, default=500)
     args = parser.parse_args()
 
-    # Contar los tránscritos
+    # Get the total number of transcripts
     total_transcripts = args.n
 
-    # Restar los tránscritos que se van a dedicar al testeo
+    # Substract the number of genes that will be dedicated to testeing
     testing_transcripts = total_transcripts - args.test_size
     subsets = subset_sizes(testing_transcripts)
-    # printear la lista sin corchete para utilizarla en el script de bash
+    # print the list wo/ the brackets to be used in bash script
     print(*subsets, sep=",")
 
 if __name__=="__main__":
-    main()
-    
+    main() 

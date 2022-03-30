@@ -8,30 +8,39 @@
 #SBATCH --time=0-24:00:00 # Time limit days-hrs:min:sec
 #SBATCH --output=prepare_busco.log # Standard output and error log
 
+# Script to get a gtf of non-redundant BUSCO genes after running the BUSCO
+# analysis on the genome
+
 # PATHS
 utilities="/home/apadepe/utilities"
 
+
+# Check the args
+if [ -z "$1" ] || [ $1 == '-h' ] || [ $1 == '--help' ]
+then
+    echo "Script to get a gtf of non redundant BUSCOS"
+    echo "Expected args:"
+    echo -e "\tpath to the BUSCO complete genes sequences"
+    echo -e "\tpath to the BUSCO complete genes in gtf format"
+    echo -e "\toutput dir"
+    exit 0
+fi
+
 # ARGS
-busco_seqs=$1 # Path con las secuencias de los genes BUSCO
-busco_gff=$2 # Path con los gff de los genes BUSCO
+busco_seqs=$1 
+busco_gff=$2 
 out_dir=$3 
 
 source activate SQANTI3.env
 
-# Obtener las secuencias en formato faa de los BUSCOS completos
+# Get th sequences in fasta format of the BUSCO complete genes
 python $utilities/busco_complete_aa.py $busco_seqs $out_dir
-
 
 cd $out_dir
 conda activate busco
-# Colapsar las secuencias con una identidad mayor al 80 %
+# collpase the sequences with and identity higher than an 80%
 cd-hit -o complete_buscos.cdhit -c 0.8 -i complete_buscos.faa -p 1 -d 0 -T 4 -M 48000
 grep ">" complete_buscos.cdhit | cut -f2 -d">" | cut -f1 > cdhit.lst
 
-# Concatenar los gff de los genes que se han mantenido después del colapso
+# Concatenate the gff files of the non-collapsed genes
 python $utilities/concatenateGFF.py cdhit.lst $busco_gff
-
-
-
-
-

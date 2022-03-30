@@ -1,75 +1,82 @@
-# Script para filtrar un archivo classification de salida de SQANTI3
-# utilizando información de blast
+# Script to filter the SQANTI3 output classificaiton file using information
+# blast
 
-# librerias
+# Load libraries
 library(dplyr)
 library(ggplot2)
 
-# Argumentos
+# Args
 args = commandArgs(trailingOnly=TRUE)
-sq_dir = args[1]  # Directorio de los output de sqanti3
-sq_prefix = args[2] # prefijo de los outputs de sqanti3
-out_dir = args[3]  # Directorio de salida para el clasification filtrado
-blast_file = args[4] # Output de blast
-tecnologia = args[5] # tecnologia de secuenciacion empleada
+sq_dir = args[1]  # SQANTI3 output dir
+sq_prefix = args[2] # SQANTI3 output prefix
+out_dir = args[3]  # Output for the filtered classification
+blast_file = args[4] # Blast output
+tecnologia = args[5] # Sequencing tech
 
-# Lectura del classification y del output de blast
+# Read the classification and the blast output
 class_path = paste(sq_dir, paste0(sq_prefix, "_classification.txt"), sep = "/")
 classification = read.delim(class_path)
 blast <- read.delim(blast_file, header = F)
 
-# Determinacion de los puntos de corte en base a la tecnologia
-th <- 0.75 # Si la tecnologia es ONT o mix se utiliza el tercer cuantil
+# Set thresholds based on tech
+th <- 0.75 # if the technology is ONT or MIX use the 3th quertile
 
-#Si la tecnologia es PacBio se utiliza la mediana´
+# if the tech is PB use the median
 if (tecnologia == "PB"){
   th <- 0.5
 }
 
-# Filtrado general del classification
+# Genetal filtering of the classification file
 filtered_clasification <- classification %>% 
-  filter(exons > 1) %>% # Quitar los monoexones
-  filter(coding == "coding") %>% # Dejar solo los codificantes
-  filter(predicted_NMD == "FALSE") %>%  # Que no tengan señales de NMD
-  filter(perc_A_downstream_TTS < 60) %>% # Que no sean candidatos de tener intrapriming
-  filter(all_canonical == "canonical") %>% # Que todas las SJ sean canónicas
-  filter(CDS_length > 300) # Longitud del CDS > 300 (100 aa)
+  filter(exons > 1) %>% # Remove monoexons
+  filter(coding == "coding") %>% # Keep only the coding genes
+  filter(predicted_NMD == "FALSE") %>%  # Remove transcript with NMD signals
+  filter(perc_A_downstream_TTS < 60) %>% # Remove intrapriming candidates
+  filter(all_canonical == "canonical") %>% # Keep trancript with canonical SJ
+  filter(CDS_length > 300) # Keep trancripts with a CDS of at least 300 nt
 
-# Filtrado en funcion de la cobertura de las SJ del classification   
+# Filtering using the short reads coverage of the SJ infroamtion   
 filtered_clasification <- filtered_clasification %>%  
-  filter(min_cov > quantile(filtered_clasification$min_cov, th)) %>% # Cobertura mínima de las SJ
-  filter(RTS_stage == "FALSE") %>% # Que no sea candidato de haber sufrdio RTS
-  filter((ORF_length + 1)*3 == CDS_length) # Que tenga codón de STOP
+  filter(min_cov > quantile(filtered_clasification$min_cov, th)) %>% # Minimun coverage of the SJ
+  filter(RTS_stage == "FALSE") %>% # Not RTS
+  filter((ORF_length + 1)*3 == CDS_length) # COmplete CDS with Stop codon
 
-# Preparacion del fichero de salida de blast para el filtrado
-blast$qcoverage <- blast$V13/blast$V14 # Cobertura del hit de blast
-blast$seq_hit <- paste(blast$V1, blast$V2, sep = "_")
-sel <- match(unique(blast$seq_hit), blast$seq_hit)
+# Prepare the blast output to be used
+blast$qcoverage <- blast$V13/blast$V14 # Query coverage
+blast$seq_hit <- paste(blast$V1, blast$V2, sep = "_") # Id of the query hit duo
+sel <- match(unique(blast$seq_hit), blast$seq_hit) # Keep only one query hit duo
 blast <- blast[sel,]
+# Summary the stats of the 3 best hits of the query
 blast_top3h_summary <- blast %>% 
-  group_by(V1) %>% 
-  summarise(n_hit = n(), 
-            qcover = max(qcoverage), 
-            identidad = max(V3), min(V11)) 
-# Reducir el numero de hits a tres en caso de empate
+  group_by(V1) %>% # group by query id
+  summarise(n_hit = n(), # number of hits
+            qcover = max(qcoverage), # Select the maximun query coverage of the 3 hits
+            identidad = max(V3), min(V11)) # select the maximun identity %
+# Reduce the number of hits in case of having more than 3
 blast_top3h_summary$n_hit <- ifelse(blast_top3h_summary$n_hit > 3, 
                                     3, blast_top3h_summary$n_hit)
 
-# Plotear la cobertura de la query en funcion del numero de hits
-blast_plot <- ggplot(blast_top3h_summary, aes(x=qcover, group=as.factor(n_hit), fill=as.factor(n_hit)))+
+# Plot the query coverage considering the number of hits
+blast_plot <- ggplot(blast_top3h_summary, 
+                     aes(x=qcover, group=as.factor(n_hit), 
+                     fill=as.factor(n_hit))) +
   geom_density(alpha = 0.5) + 
   geom_vline(xintercept =  0.85, linetype = "longdash") + 
   xlim(c(0,1.5)) +
   guides(fill=guide_legend(title="Nº of blastp hits")) + 
   xlab("Query coverage")
 
-# Mantener aquellos hits de blast con una cobertura de la query superior al 85%
+# Keep those blast hits with a query coverage higher than and 85% and lower 
+# than a 120%
 blast_85 <- blast_top3h_summary %>% 
   filter(qcover > 0.85) %>% 
   filter(qcover < 1.2)
 
-# Si la tecnologia es PB se filtra solo en funcion de los hits de blast, si la
-# tecnologia es ONT o ONT + PB tambien se filtra en funcion de el numero de reads
+# if the technology is PB the classification is filteres using only the blast
+# hits. If the technology is ONT then the FL counts are also used. Initial 
+# test showed that filtering only with blast using PB that was enough to get
+# high values of precision. To get comparable levels of precision using 
+# nanopore it is also needed to filter using FL counts
 if (tecnologia == "PB"){
   filtered_clasification <- filtered_clasification %>% 
     filter(isoform %in% blast_85$V1)
@@ -79,7 +86,7 @@ if (tecnologia == "PB"){
     filter(FL > quantile(classification$FL, th))
 }
 
-# Plot del número de exones antes y después del filtrado
+# Plot the number of exons per transcript before and after
 p_exon_pre <- ggplot(classification, aes(exons))+geom_histogram(binwidth=1) + 
   geom_histogram(binwidth=1,fill="#69b3a2", color="#e9ecef", alpha=0.9) + 
   xlab("Number of exons") + ylab("Number of transcripts") + geom_vline(xintercept = median(classification$exons))
@@ -87,7 +94,7 @@ p_exon_post <-  ggplot(filtered_clasification, aes(exons))+geom_histogram(binwid
   geom_histogram(binwidth=1,fill="#69b3a2", color="#e9ecef", alpha=0.9) + 
   xlab("Number of exons") + ylab("Number of transcripts") + geom_vline(xintercept = median(filtered_clasification$exons))
 
-# Escritura del classification y de los plots
+# Write the output
 class_out_path = paste(out_dir, paste0("filtered_",sq_prefix, "_classification.txt"), sep = "/")
 write.table(filtered_clasification, file = class_out_path,
             row.names = F, quote = F, sep = "\t")

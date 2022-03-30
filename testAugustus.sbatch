@@ -10,15 +10,22 @@
 
 source activate busco
 # PATH
-#test_file="/home/apadepe/TFM/pipeline_BUSCO_AUGUSTUS/flanking_region_10000/subsets/filtered_subset/complete_buscos_test.f.gb"
 utilities="/home/apadepe/utilities/"
 
-# Argumentos
+# Check the args
+if [ -z "$1" ] || [ $1 == '-h' ] || [ $1 == '--help' ]
+then
+    echo "Script to run AUGUSTUS give a species and test file"
+    echo "Expected args:"
+    echo -e "\tspecies: model to be used by AUGUSTUS"
+    echo -e "\ttetst file: GeneBank or fatsa file for which the genes will be predicted"
+    echo -e "\toutput dir (will be created)"
+    exit 0
+fi
+
+# Args
 species=$1
 test_file=$2
 out_dir=$3
 
 augustus --species=$species ${test_file} > $out_dir/$species.out
-
-
-#bash ${utilities}get_stats.sh `pwd`

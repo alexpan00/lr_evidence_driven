@@ -23,7 +23,7 @@ out_dir=$4 # Directory for the outputs
 if [ -z "$1" ] || [ $1 == '-h' ] || [ -z "$2" ]
 then
     echo "Arguments:"
-    echo -e "\tAGUSTUS species"
+    echo -e "\tAUGUSTUS species"
     echo -e "\tConfig file: FOFN with the hints and the config file paths separated by ,"
     echo -e "\t\tFOFN with the hints and the config file paths separated by ,"
     echo -e "\tGenome"

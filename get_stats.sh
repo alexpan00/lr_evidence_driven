@@ -1,5 +1,15 @@
 #!/bin/bash
+# Simple bash script to read the AUGUSTUS ouput and generate a summary of 
+# the stats
+if [ -z "$1" ] || [ $1 == '-h' ] || [ $1 == '--help' ]
+then
+    echo "Script to get stats from the AUGUSTUS outputs"
+    echo "Expected inputs:"
+    echo -e "\tpath to outputs directory"
+    exit 0
+fi
 cd $1
+# Add a header
 echo -e "N_genes"'\t'"nt_sn"'\t'"nt_sp"'\t'"exon_sn"'\t'"exon_sp"'\t'"gene_sn"'\t'"gene_sp"'\t'"time" > summary.tsv
 for file in *.out
 do

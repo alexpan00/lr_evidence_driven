@@ -1,21 +1,20 @@
-# Script para generar plots de los resultados de testear el modelo genrado con
-# AUGUSTUS
+# Script to generate plots from the results of testing the model 
 
-# Librerías 
+# Libraries
 library(ggplot2)
 library(RColorConesa)
 library(reshape2)
 
-# Colores 
+# Colors 
 colores <- RColorConesa::colorConesa(8)
-# Funciones para generar los plots
 
-# Media harmonica, permite calcular el F-score
+# Functions
+# Harmonic mean, calculate F-score
 harmonic_mean <- function(sn, precision){
   2*(sn*precision)/(sn+precision)
 }
 
-# Plot a nivel de nucleótido
+# Plot at nucleotide level
 plot_nt <- function(summary_dataframe){
   summary_dataframe <- summary_dataframe[,c(1,2,3)]
   summary_dataframe$f1 <- harmonic_mean(summary_dataframe[,2], summary_dataframe[,3])
@@ -32,7 +31,7 @@ plot_nt <- function(summary_dataframe){
                       labels = c("Sensitivity", "Precision", "F1")) 
 }
 
-# Plot a nivel de exón
+# Plot at exon level
 plot_exon <- function(summary_dataframe){
   summary_dataframe <- summary_dataframe[,c(1,4,5)]
   summary_dataframe$f1 <- harmonic_mean(summary_dataframe[,2], summary_dataframe[,3])
@@ -49,7 +48,7 @@ plot_exon <- function(summary_dataframe){
                       labels = c("Sensitivity", "Precision", "F1")) 
 }
 
-# Plot a nivel de gen
+# Plot at gene level
 plot_gene <- function(summary_dataframe){
   summary_dataframe <- summary_dataframe[,c(1,6,7)]
   summary_dataframe$f1 <- harmonic_mean(summary_dataframe[,2], summary_dataframe[,3])
@@ -66,7 +65,7 @@ plot_gene <- function(summary_dataframe){
                       labels = c("Sensitivity", "Precision", "F1")) 
 }
 
-# Hacer y guardar todos los plots
+# Make and save the plots
 plot_all <- function(summary_dataframe, pname){
   p <- plot_nt(summary_dataframe)
   ggsave(paste0(pname,"_nt.png"), width = 10, height = 5)
@@ -77,8 +76,8 @@ plot_all <- function(summary_dataframe, pname){
 }
 
 # Main
-# El primer argumento se espera que sea el directorio de trabajo
-# El segundo argumento se espera que sea el nombre que darle a los plots de salida
+# The first arg is the working directory
+# The second arg is the name for the plots
 args = commandArgs(trailingOnly=TRUE)
 setwd(args[1])
 resultados <- read.delim("summary.tsv")

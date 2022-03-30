@@ -10,24 +10,24 @@
 
 source activate flair_env
 
-# Script para colapsar las splice junctions resultado de mapear varias meustras
-# utilizando STAR
+# Script to collpase identical SJ between sampels found using STAR and get the
+# total number of supporting readsAR
 
 # PATHS
 utilities="/home/apadepe/utilities/"
 
-# Argumentos
+# Args
 in_dir=$1
 
-# Ir al directorio que contiene las SJ
+# Go to working directory
 cd $in_dir
 
-# Combinar todos los fichero de SJ
+# Combine all the SJ files
 cat *SJ.out.tab > compelteSJ.out.tab
 
-# Ordenar el fichero
+# Order the file
 bedtools sort -i compelteSJ.out.tab > sorted_completeSJ.out.tab
 rm compelteSJ.out.tab
 
-# colapsar las SJ
+# Collapse the splice junctions and sum the coverage
 python3 ${utilities}collapseSJ.py $in_dir/sorted_completeSJ.out.tab
