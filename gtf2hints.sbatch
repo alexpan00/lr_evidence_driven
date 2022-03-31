@@ -1,13 +1,28 @@
 #!/bin/bash
+#SBATCH --job-name=hints # Job name
+#SBATCH --partition=short # Partition (queue)
+#SBATCH --ntasks=1 
+#SBATCH --mail-type=ALL
+#SBATCH --cpus-per-task=1 # Number of tasks = cpus
+#SBATCH --mem-per-cpu=12gb # Job memory request
+#SBATCH --time=0-12:00:00 # Time limit days-hrs:min:sec
+#SBATCH --output=hints.log # Standard output and error log
+
+# Script to generate a hints file from a GTF file. Different kinds of sources
+# can be specified 
+
+
 # Check args
 if [ -z "$1" ] || [ $1 == '-h' ]
 then
     echo "Script to generate hints from gtf file."
     echo "Args:"
-    echo -e "\tgtf/gff"
+    echo -e "\tgtf/gff complete path"
     echo -e "\tUTR (TRUE/FALSE) include UTRS in the hints file"
     echo -e "\tSource (M,PB,...) the type of source used by AUGUSTUS"
-    echo -e "\tPath of the gtf file"
+    echo -e "\tPriority: used by AUGUSTUS in case of contradiction between hints"
+    echo -e "\tTrust the complete exon and introns or used as support (TRUE/FALSE)"
+    echo -e "\tPath of the gtf file directory"
     echo -e "\tName for the outputs"
     echo -e "\tChromosome (optional) Do only for one chromosome ej: chr19"
     exit 0
@@ -24,9 +39,11 @@ utilities="/home/apadepe/utilities/"
 gff=$1      # gtf to be converted to hits
 utr=$2      # include or exclude utr
 src=$3      # Source of the information (M,PB)
-wd=$4       # Working directory
-name=$5     # Name for the output
-chr=$6      # Do for only one chromosome
+pri=$4      # Priority
+part=$5     # Trust the complete exon/intron
+wd=$6       # Working directory
+name=$7     # Name for the output
+chr=$8      # Do for only one chromosome
 
 cd $wd
 # Filter one chromosome from the original gtf
@@ -53,8 +70,13 @@ rm tmp.gff
 sed -i 's/gene_id \"/grp=/g' tmp2.gff
 
 # change the trancript id for the source
-# TO DO: add othe possible sources
-cut -f1 -d'"' tmp2.gff | sed 's/$/;pri=1;src=M/g' > $name.hits.gff
+cut -f1 -d'"' tmp2.gff | sed "s/$/;pri=$pri;src=$src/g" > $name.hits.gff
 rm tmp2.gff
+
+if [ $part -eq "FALSE" ]
+then
+    sed -i "s/exon/exonpart/g" $name.hits.gff
+    sed -i "s/intron/intronpart/g" $name.hits.gff
+fi
 
 
