@@ -49,7 +49,7 @@ do
     sources_str=$(sed -n ${SOURCES}p $cfg | sed 's/ /+/g')
     # Start the prediction
     augustus --species=$model --extrinsicCfgFile=$cfg --hintsfile=$hint \
-    $genome --protein=off > \
+    $genome --protein=off --alternatives-from-evidence=true > \
     $out_dir/hints_${tec}_${sources_str}_${model}.gtf
     echo "Prediction finished"
     date
@@ -59,6 +59,6 @@ conda activate base
 echo "All predictions finished. Geting stats"
 date
 # Get the stats for all the predictions
-sbatch ${utilities}get_stats_WTC11.sbatch $out_dir
+sbatch ${utilities}get_stats_WTC11_transcript.sbatch $out_dir
 echo "Finished"
 date

@@ -73,10 +73,12 @@ sed -i 's/gene_id \"/grp=/g' tmp2.gff
 cut -f1 -d'"' tmp2.gff | sed "s/$/;pri=$pri;src=$src/g" > $name.hits.gff
 rm tmp2.gff
 
-if [ $part -eq "FALSE" ]
+if [ $part == "FALSE" ]
 then
+    echo "hola"
     sed -i "s/exon/exonpart/g" $name.hits.gff
     sed -i "s/intron/intronpart/g" $name.hits.gff
+    sed -i "s/CDS/CDSpart/g" $name.hits.gff
 fi
 
 
