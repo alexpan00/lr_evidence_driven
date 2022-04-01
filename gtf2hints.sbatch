@@ -66,11 +66,12 @@ else
 fi
 rm tmp.gff
 
-# change gene_id for grp_id
-sed -i 's/gene_id \"/grp=/g' tmp2.gff
+# Remove gene_id and change transcript id for grp_id
+sed -i 's/gene_id[^;]*;//g' tmp2.gff
+sed -i 's/transcript_id \"/grp=/g' tmp2.gff
 
 # change the trancript id for the source
-cut -f1 -d'"' tmp2.gff | sed "s/$/;pri=$pri;src=$src/g" > $name.hits.gff
+cat tmp2.gff | sed "s/$/;pri=$pri;src=$src/g" > $name.hits.gff
 rm tmp2.gff
 
 if [ $part == "FALSE" ]
