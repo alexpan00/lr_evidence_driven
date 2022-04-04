@@ -20,7 +20,7 @@ utilities="/home/apadepe/utilities/"
 #wd=$(sed -n ${SLURM_ARRAY_TASK_ID}p $1)
 cd $1
 # Make an ouput folder for the results
-#mkdir cuffcompare_results
+mkdir cuffcompare_results_transcripts
 # Read the gtf files
 for file in *.gtf
 do
@@ -28,7 +28,7 @@ do
     # Compare to the reference
     echo "Comparing $file"
     date
-    cuffcompare -e 0 -d 0 -T -o cuffcompare_results/${arrIN[0]} -r $anotacion $file
+    cuffcompare -e 0 -d 0 -T -o cuffcompare_results_transcripts/${arrIN[0]} -r $anotacion $file
     # Generate de faa file from the AUGUSTUS gtf 
     date
     conda activate cgat

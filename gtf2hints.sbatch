@@ -71,7 +71,7 @@ sed -i 's/gene_id[^;]*;//g' tmp2.gff
 sed -i 's/transcript_id \"/grp=/g' tmp2.gff
 
 # change the trancript id for the source
-cat tmp2.gff | sed "s/$/;pri=$pri;src=$src/g" > $name.hits.gff
+cat tmp2.gff | sed "s/\";$/;pri=$pri;src=$src/g" > $name.hits.gff
 rm tmp2.gff
 
 if [ $part == "FALSE" ]

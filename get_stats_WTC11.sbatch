@@ -20,7 +20,7 @@ utilities="/home/apadepe/utilities/"
 #wd=$(sed -n ${SLURM_ARRAY_TASK_ID}p $1)
 cd $1
 # Make an ouput folder for the results
-#mkdir cuffcompare_results
+mkdir cuffcompare_results
 # Read the gtf files
 for file in *.gtf
 do
