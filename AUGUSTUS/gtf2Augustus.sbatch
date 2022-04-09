@@ -38,7 +38,7 @@ pwd;date
 source activate busco
 
 # PATH
-utilities="/home/apadepe/utilities/"
+utilities=$(dirname $(dirname $(realpath -s $0)))
 
 # Inputs
 gff=$1      # gff/gtf with the reliable genes to train the model
@@ -82,10 +82,10 @@ mv $out_name.gb.train ${out_name}_train.gb
 echo "Generate the training subsets:"
 
 # Get subset sizes
-subsets=$(python3 ${utilities}autosubsets.py `grep -c LOCUS ${out_name}_train.gb`)
+subsets=$(python3 ${utilities}/AUGUSTUS/autosubsets.py `grep -c LOCUS ${out_name}_train.gb`)
 
 echo "Subsets sizes: $subsets"
-python3 ${utilities}generate_subsets.py ${out_name}_train.gb $out_name `pwd`/\
+python3 ${utilities}/AUGUSTUS/generate_subsets.py ${out_name}_train.gb $out_name `pwd`/\
     -l $subsets --seed $seed
 cd results
 
@@ -127,7 +127,7 @@ do
     # Frequency of the different stop codons
     tail -6 ${arrIN[0]}_etrain.f.out | head -3 > ${arrIN[0]}_SC_freq.txt
     # Adjsut the frecuency in the configuration file
-    python3 ${utilities}modify_SC_freq.py ${arrIN[0]}_SC_freq.txt ${arrIN[0]}
+    python3 ${utilities}/AUGUSTUS/modify_SC_freq.py ${arrIN[0]}_SC_freq.txt ${arrIN[0]}
     # Run AUGUSTUS using the model 
     augustus --species=${arrIN[0]} ${out_name}_test.f.gb > ${arrIN[0]}.out
     date
@@ -145,5 +145,5 @@ mkdir second_train
 mv *.f.out second_train/
 mv *etrain.out first_train/
 echo "Generate summary and plots"
-bash ${utilities}get_stats.sh `pwd`
-Rscript ${utilities}plots.R `pwd` $out_name
+bash ${utilities}/stats/get_stats.sh `pwd`
+Rscript ${utilities}/AUGUSTUS/plots.R `pwd` $out_name

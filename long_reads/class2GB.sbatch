@@ -3,7 +3,7 @@
 #SBATCH --partition=short # Partition (queue)
 #SBATCH --ntasks=1 
 #SBATCH --mail-type=ALL
-#SBATCH --cpus-per-task=8 # Number of tasks = cpus
+#SBATCH --cpus-per-task=4 # Number of tasks = cpus
 #SBATCH --mem-per-cpu=12gb # Job memory request
 #SBATCH --time=0-24:00:00 # Time limit days-hrs:min:sec
 #SBATCH --output=class2GB.log # Standard output and error log
@@ -15,18 +15,18 @@
 # PATHS
 export PYTHONPATH=$PYTHONPATH:/home/apadepe/cDNA_Cupcake/sequence/
 export PYTHONPATH=$PYTHONPATH:/home/apadepe/cDNA_Cupcake/
-utilities="/home/apadepe/utilities"
+utilities=$(dirname $(dirname $(realpath -s $0)))
 tama_dir="/home/apadepe/lr_pipelines/tama/"
-genoma="/home/apadepe/practicas/reference_human/lrgasp_grch38_sirvs.fasta"
-anotacion="/home/apadepe/practicas/reference_human/lrgasp_gencode_v38_sirvs.gtf"
-SR="/storage/gge/Alejandro/WTC11/Illumina/trimmed/SJ/"
+genoma="/storage/gge/Alejandro/reference_manatee/lrgasp_manatee_sirv1.fasta"
+anotacion="/storage/gge/Alejandro/reference_manatee/lrgasp_sirvs4.gtf"
+SR="/storage/gge/Alejandro/Illumina/trimmed/SJ/"
 SQ_utilities="/home/apadepe/lr_pipelines/sqanti_versions/lrgasp-challenge-3-evaluation/utilities/"
 SQ_folder="/home/apadepe/lr_pipelines/sqanti_versions/lrgasp-challenge-3-evaluation/"
 BUSCO_dir="/home/apadepe/TFM/BUSCO/busco_downloads"
 BLAST_DB="/storage/gge/Alejandro/mammalian_proteins/blastDB/mammalian"
 
 # TO DO: rm the files that are not going to be used. Plot the BUSCO completness
-# of every step
+# if every step
 # check the inputs
 if [ -z "$1" ] || [ $1 == '-h' ] || [ $1 == '--help' ]
 then
@@ -58,24 +58,25 @@ date
 blastp -query $sqanti_output_dir/*.faa -db $BLAST_DB -out $out_dir/blastp_out.txt \
     -evalue 1e-50 \
     -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen" \
-    -num_alignments 3 -num_threads 8 
+    -num_alignments 3 -num_threads 4 
 date
 conda activate lrgasp2
+
 # Use the short read coverage, the blast information and other parameters 
 # calculated by SQANTI3 to filter the transcriptome
 echo "Using BLAST info and SR to filter the clasification"
-Rscript $utilities/filterClassification.R $sqanti_output_dir $sqanti_prefix $out_dir \
-    $out_dir/blastp_out.txt $tec
+Rscript $utilities/filters/filterClassification.R $sqanti_output_dir $sqanti_prefix \
+    $out_dir $out_dir/blastp_out.txt $tec
 
 # Filtering the sam file from the trasncripts mapping using the filtered
 # classification
 echo "Filter and order the sam file:"
-python $utilities/filter_sam.py ${out_dir}/filtered_${sqanti_prefix}_classification.txt \
+python $utilities/filters/filter_sam.py ${out_dir}/filtered_${sqanti_prefix}_classification.txt \
     ${sqanti_output_dir}/${sqanti_prefix}_corrected.sam $out_dir
 
 # Use the sam file to collapse the trasncripts using tama
 cd $out_dir
-# Sorting
+# sorting
 samtools sort -u -o sorted_${sqanti_prefix}.sam -O sam -@ 4 filtered_${sqanti_prefix}_corrected.sam
 
 # TAMA collapse
@@ -86,7 +87,7 @@ python ${tama_dir}tama_collapse.py -s ${out_dir}/sorted_${sqanti_prefix}.sam -f 
 
 conda activate lrgasp2
 # Convert to GTF
-python ${utilities}/bed2gtf.py ${sqanti_prefix}.bed
+python ${utilities}/long_reads/bed2gtf.py ${sqanti_prefix}.bed
 
 # Run SQANTI3 on the filtered GTF
 mkdir ${out_dir}/SQANTI3
@@ -113,11 +114,11 @@ busco -m protein -i ${sqanti_prefix}.cdhit -o busco_cdhit -l eutheria_odb10 \
     -c 4 --offline --download_path $BUSCO_dir
 
 # Get the id from the slectected transccripts
-echo "Final filtering"
+echo "Filtrado final"
 grep ">" ${sqanti_prefix}.cdhit | cut -f2 -d">" | cut -f1 > cdhit.lst 
 
 # Filter the GTF to keep the selected trasncripts
-python ${utilities}/filter_gtf.py ${out_dir}/cdhit.lst \
+python ${utilities}/filters/filter_gtf.py ${out_dir}/cdhit.lst \
     ${out_dir}/SQANTI3/${sqanti_prefix}_corrected.gtf.cds.gff \
     ${out_dir}
 

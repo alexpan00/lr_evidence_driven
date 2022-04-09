@@ -26,7 +26,7 @@ out_name=$5 # Name for the species and output files
 seed=$6     # seed to generate subsets
 
 # PATHS
-utilities="/home/apadepe/utilities/"
+utilities=$(dirname $(realpath -s $0))
 species_path="/home/apadepe/.conda/envs/busco/config/species/"
 
 # Create an array fwith the flanking region lengths
@@ -42,7 +42,7 @@ do
     echo "Flanking region $i"
     # run the gtf2AUGUSTUS script
     sbatch --output AUGUSTUS_fr$i.log --job-name=AUGUSTUS_fr$i \
-    ${utilities}gtf2Augustus_WTC11.sbatch $gff $genoma \
+    ${utilities}/AUGUSTUS/gtf2Augustus_WTC11.sbatch $gff $genoma \
     $i $out_dir/fr$i ${out_name}_fr$i $seed
   
 done        

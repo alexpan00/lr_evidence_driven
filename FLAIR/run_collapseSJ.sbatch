@@ -14,7 +14,7 @@ source activate flair_env
 # total number of supporting readsAR
 
 # PATHS
-utilities="/home/apadepe/utilities/"
+utilities=$(dirname $(realpath -s $0))
 
 # Args
 in_dir=$1

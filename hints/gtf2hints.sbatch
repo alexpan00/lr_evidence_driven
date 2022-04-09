@@ -32,8 +32,6 @@ pwd;date
 # module load conda
 source activate busco
 
-# PATH
-utilities="/home/apadepe/utilities/"
 
 # INPUTS
 gff=$1      # gtf to be converted to hits

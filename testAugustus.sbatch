@@ -9,8 +9,6 @@
 #SBATCH --output=isoseq_test.log # Standard output and error log
 
 source activate busco
-# PATH
-utilities="/home/apadepe/utilities/"
 
 # Check the args
 if [ -z "$1" ] || [ $1 == '-h' ] || [ $1 == '--help' ]

@@ -12,7 +12,7 @@
 # analysis on the genome
 
 # PATHS
-utilities="/home/apadepe/utilities"
+utilities=$(dirname $(realpath -s $0))
 
 
 # Check the args

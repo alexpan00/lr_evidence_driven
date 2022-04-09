@@ -11,7 +11,7 @@
 # Script to compare different sources of external evidence using the same model
 
 # PATHS
-utilities="/home/apadepe/utilities/"
+utilities=$(dirname $(dirname $(realpath -s $0)))
 
 # INPUTS
 model=$1 # AUGUSTUS species to be use for the gene prediction
@@ -34,7 +34,7 @@ fi
 source activate busco
 mkdir $out_dir
 cd $out_dir
-cd ..
+
 # Read the configurarion file
 while read -r line
 do
@@ -59,6 +59,6 @@ conda activate base
 echo "All predictions finished. Geting stats"
 date
 # Get the stats for all the predictions
-sbatch ${utilities}get_stats_WTC11.sbatch $out_dir
+sbatch ${utilities}/stats/get_stats_WTC11.sbatch $out_dir
 echo "Finished"
 date
