@@ -145,7 +145,7 @@ def getFN(base_name: str)-> str:
     with open(base_name + ".stats", "r") as f_in:
         for line in f_in:
             if line.startswith("# Reference mRNAs"):
-                total_genes = line.split()[4]
+                total_genes = int(line.split()[4])
                 break
     false_negatives = total_genes - true_positives
     return str(false_negatives)
