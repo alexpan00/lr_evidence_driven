@@ -51,7 +51,7 @@ do
     conda activate SQANTI3.env
     echo "Aligning compatible proteins"
     date
-    python ${utilities}align.py cuffcompare_results/${arrIN[0]}.tracking \
+    python ${utilities}/align.py cuffcompare_results/${arrIN[0]}.tracking \
         cuffcompare_results/${arrIN[0]}.faa $ref_prot \
         cuffcompare_results/${arrIN[0]}.identity
     echo "Alingment of sample $file finished"
@@ -59,4 +59,4 @@ do
 done 
 
 # Generate the summary file
-python ${utilities}get_stats.py `pwd`/cuffcompare_results
+python ${utilities}/get_stats.py `pwd`/cuffcompare_results
