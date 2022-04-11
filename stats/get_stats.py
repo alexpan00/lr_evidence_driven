@@ -104,6 +104,52 @@ def get_FP(base_name: str)-> str:
     false_positives = total_genes - mached_genes
     return str(false_positives)
 
+def getTP(base_name: str)-> int:
+    '''
+    Function to obtain the number of True positives and patial TP, this is the 
+    number of predicted genes  that could be related to a gene in the reference
+
+    This is done by counting the number of unique reference genes in the
+    identity file (TP and partial TP)
+
+    Inputs:
+        base_name (str): name of the files wo/ the extension
+
+    Outputs:
+        true_positives (str): the total number of true_positives
+    '''
+    true_positives_id = set()
+    with open(base_name + ".identity", "r") as f_in:
+        for line in f_in:
+            true_positives_id.add(line.split()[0])
+    true_positives = len(true_positives_id)
+    return true_positives
+
+
+def getFN(base_name: str)-> str:
+    '''
+    Function to obtain the number of false negatives, this is the number of 
+    genes of the reference that could't be related to any predicted gene.
+
+    This is done by comparing the number of unique reference genes in the
+    identity file (TP and partial TP) with the total number of genes in the
+    reference
+
+    Inputs:
+        base_name (str): name of the files wo/ the extension
+
+    Outputs:
+        false_negatives (str): the total number of false negatives
+    '''
+    true_positives = getTP(base_name)
+    with open(base_name + ".stats", "r") as f_in:
+        for line in f_in:
+            if line.startswith("# Reference mRNAs"):
+                total_genes = line.split()[4]
+                break
+    false_negatives = total_genes - true_positives
+    return str(false_negatives)
+
 
 def main():
     parser = argparse.ArgumentParser(description=("Get the stats produce by"
@@ -117,7 +163,7 @@ def main():
 
     # Open the output file
     f_out = open(args.wd + "/summary.tsv", "w")
-    f_out.write("N_genes\tnt_sn\tnt_sp\texon_sn\texon_sp\tgene_sn\tgene_sp\tmean_identity\tmedian_identity\tPH\tFP\n")
+    f_out.write("N_genes\tnt_sn\tnt_sp\texon_sn\texon_sp\tgene_sn\tgene_sp\tmean_identity\tmedian_identity\tPH\tFP\tFN\n")
     for file in files:
         # Get the stats output from cuffcompare
         if file.endswith(".stats"):
@@ -131,7 +177,11 @@ def main():
             identity_stats = parse_identity(args.wd + "/" + base_name + ".identity")
             # Get FP
             false_positives = get_FP(args.wd + "/" + base_name)
-            complete_info = n_genes + "\t" + stats + "\t" + identity_stats + "\t" +false_positives
+            # Get FN
+            false_negatives = getFN(args.wd + "/" + base_name)
+
+            complete_info = n_genes + "\t" + stats + "\t" + identity_stats + \
+                            "\t" + false_positives + "\t" + false_negatives
             f_out.write(complete_info + "\n")
     f_out.close()
 

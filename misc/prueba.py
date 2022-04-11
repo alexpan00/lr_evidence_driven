@@ -1,5 +1,2 @@
-import subprocess
-process = subprocess.run(['wc', '-l', 'prueba.py'], 
-                        stdout=subprocess.PIPE, 
-                        universal_newlines=True)
-print(process.stdout.split()[0])
+a = "# Reference mRNAs :    1420 in    1363 loci  (1309 multi-exon)"
+print(a.split())
