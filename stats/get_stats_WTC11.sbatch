@@ -60,3 +60,4 @@ done
 
 # Generate the summary file
 python ${utilities}/get_stats.py `pwd`/cuffcompare_results
+Rscript ${utilities}/identity.R `pwd`/cuffcompare_results
