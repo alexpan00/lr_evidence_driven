@@ -10,7 +10,19 @@ test_set=$4 # Path al fichero que contiene el set de testeo con el que se quiere
 
 
 # PATHS
-utilities="/home/apadepe/utilities/"
+# check if script is started via SLURM or bash
+# if with SLURM: there variable '$SLURM_JOB_ID' will exist
+# `if [ -n $SLURM_JOB_ID ]` checks if $SLURM_JOB_ID is not an empty string
+if [ -n $SLURM_JOB_ID ];  then
+    # check the original location through scontrol and $SLURM_JOB_ID
+    SCRIPT_PATH=$(scontrol show job ${SLURM_JOB_ID} | grep Command | cut -f2 -d"=" | cut -f1 -d" ")
+    echo $SCRIPT_PATH
+else
+    # otherwise: started with bash. Get the real location.
+    SCRIPT_PATH=$(realpath -s $0)
+fi
+
+utilities=$(dirname $SCRIPT_PATH)
 species_path="/home/apadepe/.conda/envs/busco/config/species/"
 
 # Creación de un array a partir de los valores separados por comas

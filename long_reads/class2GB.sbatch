@@ -15,7 +15,21 @@
 # PATHS
 export PYTHONPATH=$PYTHONPATH:/home/apadepe/cDNA_Cupcake/sequence/
 export PYTHONPATH=$PYTHONPATH:/home/apadepe/cDNA_Cupcake/
-utilities=$(dirname $(dirname $(realpath -s $0)))
+# check if script is started via SLURM or bash
+# if with SLURM: there variable '$SLURM_JOB_ID' will exist
+# `if [ -n $SLURM_JOB_ID ]` checks if $SLURM_JOB_ID is not an empty string
+if [ -n $SLURM_JOB_ID ];  then
+    # check the original location through scontrol and $SLURM_JOB_ID
+    SCRIPT_PATH=$(scontrol show job ${SLURM_JOB_ID} | grep Command | cut -f2 -d"=" | cut -f1 -d" ")
+    echo $SCRIPT_PATH
+else
+    # otherwise: started with bash. Get the real location.
+    SCRIPT_PATH=$(realpath -s $0)
+fi
+
+export PYTHONPATH=$PYTHONPATH:/home/apadepe/cDNA_Cupcake/sequence/
+export PYTHONPATH=$PYTHONPATH:/home/apadepe/cDNA_Cupcake/
+utilities=$(dirname $(dirname $SCRIPT_PATH))
 tama_dir="/home/apadepe/lr_pipelines/tama/"
 genoma="/storage/gge/Alejandro/reference_manatee/lrgasp_manatee_sirv1.fasta"
 anotacion="/storage/gge/Alejandro/reference_manatee/lrgasp_sirvs4.gtf"

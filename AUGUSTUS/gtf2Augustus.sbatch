@@ -38,7 +38,6 @@ pwd;date
 source activate busco
 
 # PATH
-# PATHS
 # check if script is started via SLURM or bash
 # if with SLURM: there variable '$SLURM_JOB_ID' will exist
 # `if [ -n $SLURM_JOB_ID ]` checks if $SLURM_JOB_ID is not an empty string

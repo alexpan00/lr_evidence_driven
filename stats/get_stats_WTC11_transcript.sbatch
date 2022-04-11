@@ -10,10 +10,21 @@
 
 source activate cgat
 # PATHS
+# check if script is started via SLURM or bash
+# if with SLURM: there variable '$SLURM_JOB_ID' will exist
+# `if [ -n $SLURM_JOB_ID ]` checks if $SLURM_JOB_ID is not an empty string
+if [ -n $SLURM_JOB_ID ];  then
+    # check the original location through scontrol and $SLURM_JOB_ID
+    SCRIPT_PATH=$(scontrol show job ${SLURM_JOB_ID} | grep Command | cut -f2 -d"=" | cut -f1 -d" ")
+    echo $SCRIPT_PATH
+else
+    # otherwise: started with bash. Get the real location.
+    SCRIPT_PATH=$(realpath -s $0)
+fi
 anotacion="/home/apadepe/practicas/reference_human/new_chr19/modificado_chr19_CDS.gtf"
 genoma="/home/apadepe/practicas/reference_human/chr19.fa"
 ref_prot="/home/apadepe/practicas/reference_human/new_chr19/chr19_transcripts.faa"
-utilities=$(dirname $(realpath -s $0))
+utilities=$(dirname $SCRIPT_PATH)
 
 # TO DO: get alternatives for running as array and as indiviual jobs
 # Go to working directory
