@@ -26,6 +26,7 @@ genoma="/home/apadepe/practicas/reference_human/chr19.fa"
 ref_prot="/home/apadepe/practicas/reference_human/new_chr19/chr19_transcripts.faa"
 utilities=$(dirname $SCRIPT_PATH)
 BUSCO_dir="/home/apadepe/TFM/BUSCO/busco_downloads"
+BUSCO_ref="/home/apadepe/practicas/reference_human/new_chr19/chr_19_BUSCO/run_eutheria_odb10/short_summary.txt"
 
 # TO DO: get alternatives for running as array and as indiviual jobs
 # Go to working directory
@@ -66,5 +67,5 @@ do
 done 
 
 # Generate the summary file
-python ${utilities}/get_stats.py `pwd`/cuffcompare_results
+python ${utilities}/get_stats.py `pwd`/cuffcompare_results `pwd` $BUSCO_ref
 Rscript ${utilities}/identity.R `pwd`/cuffcompare_results

@@ -151,19 +151,70 @@ def getFN(base_name: str)-> str:
     return str(false_negatives)
 
 
+def get_BUSCO_stats(f_in: str)-> dict:
+    '''
+    Fuction to get the number of BUSCO complete genes in single and multiple
+    copies.
+
+    Inputs:
+        f_in (str): BUSCO short_summary file
+    
+    Outputs:
+        stats_BUSCO (dict): number of single copy and duplicated BUSCOS
+    '''
+    stats_BUSCO = dict()
+    with open(f_in, "r") as short_summary:
+        for line in short_summary:
+            if "(S)" in line:
+                stats_BUSCO["S"] = int(line.split()[0])
+            if "(D)" in line:
+                stats_BUSCO["D"] = int(line.split()[0])
+                break
+
+    return stats_BUSCO
+
+
+def compare_BUSCOS(d_ref: dict, f_in: str)-> dict:
+    '''
+    Function to compare the found BUSCOS in the reference proteom against the
+    predicted proteins
+
+    Inputs:
+        d_ref (dict): reference proteom stats
+        f_in (str): path to the BUSCO results
+
+    Outputs:
+        relative_completness (dict): % of single copy and duplicated BUSCOS
+    '''
+    relative_completness = dict()
+    # Get the stats of the predicted genes
+    d_test = get_BUSCO_stats(f_in + "/run_eutheria_odb10/short_summary.txt")
+
+    # Get the copletness in realtion to the reference
+    relative_completness["S"] = d_test["S"]/d_ref["S"]
+    relative_completness["D"] = d_test["D"]/d_ref["D"]
+
+    return relative_completness
+
+
 def main():
     parser = argparse.ArgumentParser(description=("Get the stats produce by"
                                                    " cuffcompare and the"
                                                    " aligment"))
     parser.add_argument("wd", help="path with the necessary files")
+    parser.add_argument("pd", help="path with the BUSCO outputs")
+    parser.add_argument("ref_BUSCO", help="path to ref proteom BUSCO stats")
     args = parser.parse_args()
+
+    # Get reference BUSCO stats
+    ref_BUSCO_stats = get_BUSCO_stats(args.ref_BUSCO)
 
     # get a list of the necessary files
     files = os.listdir(args.wd)
 
     # Open the output file
     f_out = open(args.wd + "/summary.tsv", "w")
-    f_out.write("N_genes\tnt_sn\tnt_sp\texon_sn\texon_sp\tgene_sn\tgene_sp\tmean_identity\tmedian_identity\tPH\tFP\tFN\n")
+    f_out.write("N_genes\tnt_sn\tnt_sp\texon_sn\texon_sp\tgene_sn\tgene_sp\tmean_identity\tmedian_identity\tPH\tFP\tFN\tSC\tDU\n")
     for file in files:
         # Get the stats output from cuffcompare
         if file.endswith(".stats"):
@@ -179,9 +230,11 @@ def main():
             false_positives = get_FP(args.wd + "/" + base_name)
             # Get FN
             false_negatives = getFN(args.wd + "/" + base_name)
-
+            # Get BUSCO stats
+            completness = compare_BUSCOS(ref_BUSCO_stats, args.pd + "/" + base_name)
             complete_info = n_genes + "\t" + stats + "\t" + identity_stats + \
-                            "\t" + false_positives + "\t" + false_negatives
+                            "\t" + false_positives + "\t" + false_negatives + \
+                            "\t" + str(completness["S"]) + "\t" + str(completness["D"])
             f_out.write(complete_info + "\n")
     f_out.close()
 
