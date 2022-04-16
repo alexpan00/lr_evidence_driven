@@ -25,6 +25,7 @@ anotacion="/home/apadepe/practicas/reference_human/new_chr19/filtered_modificado
 genoma="/home/apadepe/practicas/reference_human/chr19.fa"
 ref_prot="/home/apadepe/practicas/reference_human/new_chr19/chr19_transcripts.faa"
 utilities=$(dirname $SCRIPT_PATH)
+BUSCO_dir="/home/apadepe/TFM/BUSCO/busco_downloads"
 
 # TO DO: get alternatives for running as array and as indiviual jobs
 # Go to working directory
@@ -47,6 +48,12 @@ do
     agat_sp_extract_sequences.pl --gff $file -f $genoma -p \
         -o cuffcompare_results/${arrIN[0]}.faa > /dev/null
     sed -i 's/'*'//g' cuffcompare_results/${arrIN[0]}.faa
+    
+    # BUSCO completness
+    conda activate busco
+    busco -m protein -i cuffcompare_results/${arrIN[0]}.faa -o ${arrIN[0]} \
+        -l eutheria_odb10 \
+        -c 4 --offline --download_path $BUSCO_dir
     # Generate the alignents
     conda activate SQANTI3.env
     echo "Aligning compatible proteins"
