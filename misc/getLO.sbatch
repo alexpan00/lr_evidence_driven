@@ -44,18 +44,23 @@ gff=$1      # gtf to be filtered
 genome=$2   # reference genome
 
 # Convert transcript to fasta
+echo "Generating fasta file from gtf"
 gffread $gff -g $genome -w transcript.fasta
 
 # Get the longest transcript for each gene with a valid start and stop codon
+echo "Filtering fasta to keep longest ORF for each gene with valid start and stop"
 python $utilities/misc/filterLO.py
 
 # Get the id for each transcript
+echo "Identifiying transcripts id"
 grep ">" transcript_LO.fasta | cut -f1 -d" " | cut -f2 -d">" > id.lst
 
 # Filter the GTF
+echo "Generating the new GTF with the longest ORF trasncripts"
 python $utilities/filters/filter_gtf.py id.lst $gff `pwd`
 
 # Translate the longest ORF transcripts
+echo "Getting the protein sequence of the longest orf transcripts"
 python $utilities/misc/translate.py
 
 rm id.lst transcript.fasta
