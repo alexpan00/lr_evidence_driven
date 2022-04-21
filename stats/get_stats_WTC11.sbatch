@@ -3,8 +3,8 @@
 #SBATCH --partition=short # Partition (queue)
 #SBATCH --ntasks=1 
 #SBATCH --mail-type=ALL
-#SBATCH --cpus-per-task=1 # Number of tasks = cpus
-#SBATCH --mem-per-cpu=12gb # Job memory request
+#SBATCH --cpus-per-task=8 # Number of tasks = cpus
+#SBATCH --mem-per-cpu=6gb # Job memory request
 #SBATCH --time=0-08:00:00 # Time limit days-hrs:min:sec
 #SBATCH --output=Stats_%A-%a.log # Standard output and error log
 
@@ -33,6 +33,7 @@ BUSCO_ref="/home/apadepe/practicas/reference_human/new_chr19/chr_19_BUSCO/run_eu
 #wd=$(sed -n ${SLURM_ARRAY_TASK_ID}p $1)
 cd $1
 # Make an ouput folder for the results
+rm -r cuffcompare_results
 mkdir cuffcompare_results
 # Read the gtf files
 for file in *.gtf
@@ -54,7 +55,7 @@ do
     conda activate busco
     busco -m protein -i cuffcompare_results/${arrIN[0]}.faa -o ${arrIN[0]} \
         -l eutheria_odb10 \
-        -c 4 --offline --download_path $BUSCO_dir
+        -c 8 --offline --download_path $BUSCO_dir
     # Generate the alignents
     conda activate SQANTI3.env
     echo "Aligning compatible proteins"
