@@ -156,5 +156,6 @@ mkdir second_train
 mv *.f.out second_train/
 mv *etrain.out first_train/
 echo "Generating summary:"
+conda activate base
 sbatch ${utilities}/stats/get_stats_WTC11.sbatch `pwd`
 #Rscript ${utilities}plots.R `pwd` $out_name
