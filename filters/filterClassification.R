@@ -29,7 +29,6 @@ filtered_clasification <- classification %>%
 
 # Filtering using the short reads coverage of the SJ infroamtion   
 filtered_clasification <- filtered_clasification %>%  
-  filter(min_cov > quantile(filtered_clasification$min_cov, th)) %>% # Minimun coverage of the SJ
   filter(RTS_stage == "FALSE") %>% # Not RTS
   filter((ORF_length + 1)*3 == CDS_length) # COmplete CDS with Stop codon
 
@@ -49,6 +48,10 @@ th <- 0.75 # if the technology is ONT or MIX use the 3th quertile
 if (tecnologia == "PB"){
   th <- 0.5
 }
+
+# Filtering based on the SJ coverage
+filtered_clasification <- filtered_clasification %>%  
+  filter(min_cov > quantile(filtered_clasification$min_cov, th)) # Minimun coverage of the SJ
 
 # Read the blast output
 blast <- read.delim(blast_file, header = F)
