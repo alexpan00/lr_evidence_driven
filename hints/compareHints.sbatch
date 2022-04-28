@@ -17,7 +17,6 @@
 if [ -n "$SLURM_JOB_ID" ];  then
     # check the original location through scontrol and $SLURM_JOB_ID
     SCRIPT_PATH=$(scontrol show job ${SLURM_JOB_ID} | grep Command | cut -f2 -d"=" | cut -f1 -d" ")
-    echo $SCRIPT_PATH
 else
     # otherwise: started with bash. Get the real location.
     SCRIPT_PATH=$(realpath -s $0)
@@ -37,7 +36,7 @@ then
     echo "Arguments:"
     echo -e "\tAUGUSTUS species"
     echo -e "\tConfig file: FOFN with the hints and the config file paths separated by ,"
-    echo -e "\t\tFOFN with the hints and the config file paths separated by ,"
+    echo -e "\t\tFOFN with the hints paths, the config file paths and the tecnology separated by ,"
     echo -e "\tGenome"
     echo -e "\tOutput directory"
     exit 0
@@ -56,8 +55,10 @@ do
     tec=${arrIN[2]}
     date
     echo "Using $hint as hints for the prediction"
+    # Get the line of the file thath indicates the sources
     SOURCES=$(grep -n SOURCES $cfg | cut -f1 -d":" | head -n 1)
     SOURCES=$((SOURCES + 1))
+    # Generate a concatenation of the sources
     sources_str=$(sed -n ${SOURCES}p $cfg | sed 's/ /+/g')
     # Start the prediction
     augustus --species=$model --extrinsicCfgFile=$cfg --hintsfile=$hint \
