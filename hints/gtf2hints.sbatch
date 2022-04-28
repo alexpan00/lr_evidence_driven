@@ -5,7 +5,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --cpus-per-task=1 # Number of tasks = cpus
 #SBATCH --mem-per-cpu=12gb # Job memory request
-#SBATCH --time=0-12:00:00 # Time limit days-hrs:min:sec
+#SBATCH --time=0-00:10:00 # Time limit days-hrs:min:sec
 #SBATCH --output=hints.log # Standard output and error log
 
 # Script to generate a hints file from a GTF file. Different kinds of sources
@@ -16,7 +16,6 @@
 if [ -n "$SLURM_JOB_ID" ];  then
     # check the original location through scontrol and $SLURM_JOB_ID
     SCRIPT_PATH=$(scontrol show job ${SLURM_JOB_ID} | grep Command | cut -f2 -d"=" | cut -f1 -d" ")
-    echo $SCRIPT_PATH
 else
     # otherwise: started with bash. Get the real location.
     SCRIPT_PATH=$(realpath -s $0)
@@ -57,7 +56,7 @@ mode=$9     # Type of data to be used
 sqanti_dir=${10} # Path to the SQANTI3 output
 sqanti_prefix=${11} # Prefix of the SQANTI3 outputs
 
-tm_file="FALSE"
+tmp_file="FALSE"
 cd $wd
 # Filter one chromosome from the original gtf
 if [ -n "$chr" ]
@@ -65,9 +64,9 @@ then
     grep $chr $gff > tmp.gff
     gff="tmp.gff"
 fi
-source activate lrgsp2
+source activate lrgasp2
 # Use the SQANTI3 classification file to keep only the protein 
-if [ "$mode" == "transcript"]
+if [ "$mode" == "transcript" ]
 then
     Rscript ${utilities}/filters/filterClassification.R $sqanti_dir $sqanti_prefix $wd
     tail -n +2 filtered_${sqanti_prefix}_classification.txt | cut -f1 > tmp.lst
@@ -86,6 +85,7 @@ then
 # If the model was't trained to use UTR keep only the CDS
 else
     grep -P "\t(CDS)\t" $gff | gtf2gff.pl --printIntron --out=tmp.gff
+    head tmp.gff
     grep -P "\t(CDS|intron)\t" tmp.gff > tmp2.gff
 fi
 rm tmp.gff
@@ -105,7 +105,7 @@ then
     sed -i "s/CDS/CDSpart/g" $name.hits.gff
 fi
 
-if [ $tmp_file == "TRUE"]
+if [ $tmp_file == "TRUE" ]
 then
     rm $gff
 fi
