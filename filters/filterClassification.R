@@ -15,16 +15,8 @@ tecnologia = args[5] # Sequencing tech
 
 # Read the classification and the blast output
 class_path = paste(sq_dir, paste0(sq_prefix, "_classification.txt"), sep = "/")
+print(class_path)
 classification = read.delim(class_path)
-blast <- read.delim(blast_file, header = F)
-
-# Set thresholds based on tech
-th <- 0.75 # if the technology is ONT or MIX use the 3th quertile
-
-# if the tech is PB use the median
-if (tecnologia == "PB"){
-  th <- 0.5
-}
 
 # Genetal filtering of the classification file
 filtered_clasification <- classification %>% 
@@ -49,6 +41,17 @@ if (length(args) != 5){
             row.names = F, quote = F, sep = "\t")
   quit()
 }
+
+# Set thresholds based on tech
+th <- 0.75 # if the technology is ONT or MIX use the 3th quertile
+
+# if the tech is PB use the median
+if (tecnologia == "PB"){
+  th <- 0.5
+}
+
+# Read the blast output
+blast <- read.delim(blast_file, header = F)
 
 # Prepare the blast output to be used
 blast$qcoverage <- blast$V13/blast$V14 # Query coverage
