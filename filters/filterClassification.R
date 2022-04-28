@@ -41,6 +41,15 @@ filtered_clasification <- filtered_clasification %>%
   filter(RTS_stage == "FALSE") %>% # Not RTS
   filter((ORF_length + 1)*3 == CDS_length) # COmplete CDS with Stop codon
 
+# To generate the hints no more filtering steps are needed, write the filtered
+# classification and exit
+if (length(args) != 5){
+  class_out_path = paste(out_dir, paste0("filtered_",sq_prefix, "_classification.txt"), sep = "/")
+  write.table(filtered_clasification, file = class_out_path,
+            row.names = F, quote = F, sep = "\t")
+  quit()
+}
+
 # Prepare the blast output to be used
 blast$qcoverage <- blast$V13/blast$V14 # Query coverage
 blast$seq_hit <- paste(blast$V1, blast$V2, sep = "_") # Id of the query hit duo

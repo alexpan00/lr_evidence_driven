@@ -57,3 +57,16 @@ isoseq3 cluster flnc.bam polished.bam --verbose --use-qvs
 echo "Map the clustered reads to the genome"
 minimap2 -ax splice -t 12 -uf --secondary=no -C5 \
    $genome polished.hq.fasta.gz > hq_isoforms.fastq.sam
+
+echo "Cluster transcripts using the mapping information"
+gunzip polished.hq.fasta.gz
+# Order the sam file
+sort -k 3,3 -k 4,4n hq_isoforms.fastq.sam > hq_isoforms.fastq.sorted.sam
+collapse_isoforms_by_sam.py --input polished.hq.fasta \
+   -s hq_isoforms.fastq.sorted.sam  -o WTC11
+
+echo "Count the number of reads associated to each transcript"
+get_abundance_post_collapse.py WTC11.collapsed polished.cluster_report.csv
+
+echo "Filter the transcripts based on the number of associated reads"
+filter_by_count.py --dun_use_group_count WTC11.collapsed

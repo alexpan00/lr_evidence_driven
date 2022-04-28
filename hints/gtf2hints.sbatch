@@ -10,10 +10,21 @@
 
 # Script to generate a hints file from a GTF file. Different kinds of sources
 # can be specified 
-
+# check if script is started via SLURM or bash
+# if with SLURM: there variable '$SLURM_JOB_ID' will exist
+# `if [ -n $SLURM_JOB_ID ]` checks if $SLURM_JOB_ID is not an empty string
+if [ -n "$SLURM_JOB_ID" ];  then
+    # check the original location through scontrol and $SLURM_JOB_ID
+    SCRIPT_PATH=$(scontrol show job ${SLURM_JOB_ID} | grep Command | cut -f2 -d"=" | cut -f1 -d" ")
+    echo $SCRIPT_PATH
+else
+    # otherwise: started with bash. Get the real location.
+    SCRIPT_PATH=$(realpath -s $0)
+fi
+utilities=$(dirname $(dirname $SCRIPT_PATH))
 
 # Check args
-if [ -z "$1" ] || [ $1 == '-h' ]
+if [ -z "$1" ] || [ $1 == '-h' ] || [ $1 == '--help' ]
 then
     echo "Script to generate hints from gtf file."
     echo "Args:"
@@ -25,12 +36,12 @@ then
     echo -e "\tPath of the gtf file directory"
     echo -e "\tName for the outputs"
     echo -e "\tChromosome (optional) Do only for one chromosome ej: chr19"
+    echo -e "\tMode: type of data that will be converted to hints."
+    echo -e "\tCan be read, transcript or gene"
     exit 0
 fi
 
 pwd;date
-# module load conda
-source activate busco
 
 
 # INPUTS
@@ -42,7 +53,11 @@ part=$5     # Trust the complete exon/intron
 wd=$6       # Working directory
 name=$7     # Name for the output
 chr=$8      # Do for only one chromosome
+mode=$9     # Type of data to be used
+sqanti_dir=${10} # Path to the SQANTI3 output
+sqanti_prefix=${11} # Prefix of the SQANTI3 outputs
 
+tm_file="FALSE"
 cd $wd
 # Filter one chromosome from the original gtf
 if [ -n "$chr" ]
@@ -50,7 +65,18 @@ then
     grep $chr $gff > tmp.gff
     gff="tmp.gff"
 fi
-
+source activate lrgsp2
+# Use the SQANTI3 classification file to keep only the protein 
+if [ "$mode" == "transcript"]
+then
+    Rscript ${utilities}/filters/filterClassification.R $sqanti_dir $sqanti_prefix $wd
+    tail -n +2 filtered_${sqanti_prefix}_classification.txt | cut -f1 > tmp.lst
+    python ${utilities}/filters/filter_gtf.py tmp.lst $gff `pwd`
+    gff=filtered_${gff}
+    rm tmp.lst
+    tmp_file="TRUE"
+fi
+conda activate busco
 # add explicit introns
 # If the model was trained to use UTR keep exons and CDS
 if [ "$utr"  == "TRUE" ]
@@ -74,10 +100,12 @@ rm tmp2.gff
 
 if [ $part == "FALSE" ]
 then
-    echo "hola"
     sed -i "s/exon/exonpart/g" $name.hits.gff
     sed -i "s/intron/intronpart/g" $name.hits.gff
     sed -i "s/CDS/CDSpart/g" $name.hits.gff
 fi
 
-
+if [ $tmp_file == "TRUE"]
+then
+    rm $gff
+fi
