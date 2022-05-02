@@ -44,7 +44,7 @@ do
     lima --dump-clips --isoseq $file $primers $filename.fl.bam
 done
 
-echo "Creating a dataset to process the reads together"
+echo "Creating a dataset to process all the reads together"
 dataset create --type ConsensusReadSet combined_demux.consensusreadset.xml *.fl.Clontech_5p--Clontech_3p.bam
 
 echo "Removing polyA tails"
