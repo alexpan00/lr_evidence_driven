@@ -2,8 +2,6 @@
 Script to collpase identical SJ between sampels found using STAR and get the
 total number of supporting reads
 '''
-
-
 import os
 import argparse
 
@@ -12,16 +10,15 @@ def main():
     parser = argparse.ArgumentParser(description="Get a summary of multiple SJ.out.tab files")
     parser.add_argument("SJ", help="path with the SJ.out:tab files")
     args = parser.parse_args()
-    directorio = os.path.dirname(args.SJ)
-    archivo = os.path.basename(args.SJ)
+    dir = os.path.dirname(args.SJ)
+    SJ = os.path.basename(args.SJ)
     # Output file
-    f_out = open(directorio + "/collapsed_" + archivo, "w")
-    print(directorio + "/collapsed_" + archivo)
+    f_out = open(dir + "/collapsed_" + SJ, "w")
     # List to store the lines as they are read
     aux_record = list()
     with open(args.SJ, "r") as f_in:
-        for linea in f_in:
-            record = linea.split()
+        for line in f_in:
+            record = line.split()
             # The coverage of the SJ is in the fild 6. Convert it to int 
             record[6] = int(record[6])
             if aux_record:
