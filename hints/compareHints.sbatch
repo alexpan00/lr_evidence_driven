@@ -4,8 +4,8 @@
 #SBATCH --ntasks=1 
 #SBATCH --mail-type=ALL
 #SBATCH --cpus-per-task=1 # Number of tasks = cpus
-#SBATCH --mem-per-cpu=30gb # Job memory request
-#SBATCH --time=0-24:00:00 # Time limit days-hrs:min:sec
+#SBATCH --mem-per-cpu=4gb # Job memory request
+#SBATCH --time=0-05:00:00 # Time limit days-hrs:min:sec
 #SBATCH --output=compare_hints.log # Standard output and error log
 
 # Script to compare different sources of external evidence using the same model
@@ -62,7 +62,7 @@ do
     sources_str=$(sed -n ${SOURCES}p $cfg | sed 's/ /+/g')
     # Start the prediction
     augustus --species=$model --extrinsicCfgFile=$cfg --hintsfile=$hint \
-    $genome --protein=off > \
+    $genome --protein=off --softmasking=off > \
     $out_dir/hints_${tec}_${sources_str}_${model}.gtf
     echo "Prediction finished"
     date

@@ -33,7 +33,7 @@ BUSCO_ref="/home/apadepe/practicas/reference_human/new_chr19/chr_19_BUSCO/run_eu
 wd=$(sed -n ${SLURM_ARRAY_TASK_ID}p $1)
 cd $wd
 # Make an ouput folder for the results
-#rm -r cuffcompare_results
+rm -r cuffcompare_results
 mkdir cuffcompare_results
 # Read the gtf files
 for file in *.gtf
