@@ -10,9 +10,11 @@ then
     echo "with different lenghts of the flanking region."
     echo "Expected args:"
     echo -e "\tgff/gtf with the reliable genes"
-    echo -e "\tgenome reference genome"
-    echo -e "\tlength of the flanking regions separated with , (1000,2000)"
-    echo -e "\tName for the species (model name) and output files"
+    echo -e "\tReference genome"
+    echo -e "\tLength of the flanking regions separated by , (ej: 1000,2000)"
+    echo -e "\tName for the species (model name) and the output files. The"
+    echo -e "\t\tname muest contain the species and the technology used"
+    echo -e "\t\tseparated by an underscore"
     echo -e "\tSeed for the generation of random subsets"
     exit 0
 fi

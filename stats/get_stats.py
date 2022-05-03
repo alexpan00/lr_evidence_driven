@@ -7,7 +7,7 @@ import argparse
 import os
 import statistics
 import subprocess
-    
+
 
 def parse_stats(f_in: str)-> str:
     '''
@@ -72,6 +72,7 @@ def parse_identity(f_in:str)-> str:
 
     return identity_stats
 
+
 def get_FP(base_name: str)-> str:
     '''
     Function to obtain the number of false positives, this is the number of 
@@ -103,6 +104,7 @@ def get_FP(base_name: str)-> str:
     # The difference between the two is the number of FP
     false_positives = total_genes - mached_genes
     return str(false_positives)
+
 
 def getTP(base_name: str)-> int:
     '''
@@ -212,8 +214,16 @@ def main():
     # get a list of the necessary files
     files = os.listdir(args.wd)
 
+    # Get a name for the output file
+    # Get the name of a random file without the extennsion
+    name = files[0].split(".")[0]
+    # Split the name
+    l_name = name.split("_")
+    # The last fild contains the length of the flanking region and the
+    # previous one should contain the technology used
+    output_name = l_name[-1] + "_" + l_name[-2] + ".tsv"
     # Open the output file
-    f_out = open(args.wd + "/summary.tsv", "w")
+    f_out = open(args.wd + "/" + output_name, "w")
     f_out.write("N_genes\tnt_sn\tnt_sp\texon_sn\texon_sp\tgene_sn\tgene_sp\tmean_identity\tmedian_identity\tPH\tFP\tFN\tSC\tDU\n")
     for file in files:
         # Get the stats output from cuffcompare
