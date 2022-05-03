@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=isoseq # Job name
+#SBATCH --job-name=flair # Job name
 #SBATCH --partition=long # Partition (queue)
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=16
@@ -8,8 +8,22 @@
 #SBATCH -t 10-00:00:00     # Walltime
 #SBATCH --output=isoseq.log # Standard output and error log
 
+# PATH
+# check if script is started via SLURM or bash
+# if with SLURM: there variable '$SLURM_JOB_ID' will exist
+# `if [ -n $SLURM_JOB_ID ]` checks if $SLURM_JOB_ID is not an empty string
+if [ -n "$SLURM_JOB_ID" ];  then
+    # check the original location through scontrol and $SLURM_JOB_ID
+    SCRIPT_PATH=$(scontrol show job ${SLURM_JOB_ID} | grep Command | cut -f2 -d"=" | cut -f1 -d" ")
+else
+    # otherwise: started with bash. Get the real location.
+    SCRIPT_PATH=$(realpath -s $0)
+fi
+
+utilities=$(dirname $(dirname $(dirname $SCRIPT_PATH)))
+
 date;pwd
-# Example run of the isoseq3 pipeline 
+# Example run of FLIAR pipeline 
 # Check the args
 if [ -z "$1" ] || [ $1 == '-h' ] || [ $1 == '--help' ]
 then
@@ -41,6 +55,8 @@ do
 done < $fofn
 
 cd $wd
+# FLAIR uses short reads information. The information about how to process the
+# short reads data can be found in the short_reads.sbatch script
 date ; echo "Correct the splice sites using short reads information."
 while read -r line
 do
@@ -60,3 +76,8 @@ python ${flair}flair.py collapse -o FLAIR -s 2 -t 12 --stringent \
     --check_splice -q complete.bed -g $genome \
     --filter nosubset --generate_map \
     -r ${reads_path}/*.fast.gz
+
+echo "Count the number of reads associated to each transcript and give the"
+echo "transcript a simpler name"
+date
+python $utilities/FLAIR/count_rename.py FLAIR `pwd`
