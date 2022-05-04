@@ -1,6 +1,6 @@
 '''
 Script that uses a filtered classification file (SQANTI3 output) to filter
-a sam file and keep those transcripts
+a sam file and keep only the transcripts present in the classification file
 '''
 
 import argparse
@@ -15,27 +15,27 @@ def parse_classification(classification: str)-> list:
         classification (str): path to the classification file
     
     Output:
-        l_trasncripts (list): lsit of the transcripots ids
+        l_trasncripts (list): list of the transcripots ids
     ''' 
     l_transcripts = list()
+    # Read the SQANTI3 filtered classification file
     with open(classification, "r") as f_in:
+        # Parse every line except the header
+        header_line = next(f_in)
         for i, linea in enumerate(f_in):
-            # Parse every line except the header
-            if i != 0:
-                
-                ll = linea.split()
-                # The trasncript id is the first fild of the line
-                l_transcripts.append(ll[0])
+            ll = linea.split()
+            # The trasncript id is the first fild of the line
+            l_transcripts.append(ll[0])
     return l_transcripts
 
 def main():
-    parser = argparse.ArgumentParser(description="Filter a SAM")
+    parser = argparse.ArgumentParser(description="Filter a SAM file keeping only the transcript present in the filtered SQANTI3 classification file")
     # Classification file
     parser.add_argument("classification", 
                         help="SQANTI classification file")
     # Sam file
     parser.add_argument("sam",
-                        help="sam file to be filtered")
+                        help="SAM file to be filtered")
     parser.add_argument("out_dir",
                         help="path to write the output")
     args = parser.parse_args()

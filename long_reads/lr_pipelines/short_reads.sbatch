@@ -45,7 +45,7 @@ wd=$3
 p1="_r1.fastq.gz"
 p2="_r2.fastq.gz"
 
-conda activate mapper
+source activate mapper
 
 date; echo "Creating the STAR index"
 STAR --runThreadN 8 \

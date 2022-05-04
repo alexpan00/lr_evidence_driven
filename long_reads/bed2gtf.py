@@ -2,7 +2,6 @@
 Script to convert from bed to gtf
 '''
 
-
 import argparse
 
 
@@ -322,7 +321,7 @@ def bed2exon(bed_record:bed12_transcript)-> list:
 
 def bed2gtf(bed_record:bed12_transcript)-> gtf_transcript:
     '''
-    Function to convert bed12_transcriot to gtf_transcript
+    Function to convert bed12_transcript to gtf_transcript
 
     One of the main considerations in the transformation from bed to gtf is 
     that bed is 0 based and the last position is not inclusive while bed is

@@ -1,13 +1,8 @@
 '''
-Script to generate the size of the subsets that will be used to train 
-AUGUSTUS
-
-Script para generar los tamaño de los subsets con los que se entrenará a 
+Script to calculate the size of the subsets that will be used to train 
 AUGUSTUS
 '''
 import argparse
-from ast import parse
-from re import sub
 
 
 def count_transcripts(f_in:str)->int:
@@ -53,7 +48,7 @@ def subset_sizes(total: int)-> list:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate trining subset sizes")
+    parser = argparse.ArgumentParser(description="Generate training subset sizes")
     #parser.add_argument("gtf")
     parser.add_argument("n", type=int,
                         help="Total number of transcripts")

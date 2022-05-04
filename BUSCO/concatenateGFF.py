@@ -1,6 +1,6 @@
 '''
 Given a file with the BUSCO complete genes that what to be incoporated to the
-fianl gff final and the path with the individual gff files creates a final
+fianal gff file and the path with the individual gff files creates a final
 gff with the gene names modified to be more informative
 '''
 
@@ -22,6 +22,7 @@ def gene2list(gene_file: str)-> list:
         for linea in f_in:
             l_genes.append(linea.strip())
     return l_genes
+
 
 def concatenar(l_genes, path):
     '''
@@ -55,13 +56,13 @@ def concatenar(l_genes, path):
 
            
 def main():
-    parser = argparse.ArgumentParser(description="Concatenate gff files")
+    parser = argparse.ArgumentParser(description="Concatenate the gff files of the genes conatined in a list")
     parser.add_argument("genes", 
                         help="File with genes that will be kept")
     parser.add_argument("path",
-                        help="path with the individual gff files")
+                        help="path to the directory containing the individual gff files")
     args = parser.parse_args()
-    # Get the lsit of genes
+    # Get the list of genes
     l_genes = gene2list(args.genes)
     # Concatenate the gff files and produce the final gff
     concatenar(l_genes, args.path)

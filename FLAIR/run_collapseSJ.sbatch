@@ -26,8 +26,6 @@ else
     SCRIPT_PATH=$(realpath -s $0)
 fi
 
-export PYTHONPATH=$PYTHONPATH:/home/apadepe/cDNA_Cupcake/sequence/
-export PYTHONPATH=$PYTHONPATH:/home/apadepe/cDNA_Cupcake/
 utilities=$(dirname $SCRIPT_PATH)
 
 # Args

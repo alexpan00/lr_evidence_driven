@@ -52,7 +52,6 @@ fi
 
 utilities=$(dirname $(dirname $SCRIPT_PATH))
 chr19="/home/apadepe/practicas/reference_human/chr19.fa"
-ref="/home/apadepe/practicas/reference_human/chr19_CDS_LO.gtf"
 
 # Inputs
 gff=$1      # gff/gtf with the reliable genes to train the model

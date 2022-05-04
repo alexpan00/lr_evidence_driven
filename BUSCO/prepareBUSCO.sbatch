@@ -31,7 +31,7 @@ if [ -z "$1" ] || [ $1 == '-h' ] || [ $1 == '--help' ]
 then
     echo "Script to get a gtf of non redundant BUSCOS"
     echo "Expected args:"
-    echo -e "\tpath to the BUSCO complete genes sequences"
+    echo -e "\tpath to the directory containing the BUSCO complete genes sequences"
     echo -e "\tpath to the BUSCO complete genes in gtf format"
     echo -e "\toutput dir"
     exit 0

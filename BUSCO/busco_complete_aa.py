@@ -9,7 +9,7 @@ import argparse
 def main():
     parser = argparse.ArgumentParser(description="Get protein sequences of the found BUSCO genes")
     parser.add_argument("path",
-                        help="path to the file containing the individual fasta")
+                        help="path to the directory containing the individual fasta")
     parser.add_argument("out_dir",
                         help="path to write the output")
     args = parser.parse_args()

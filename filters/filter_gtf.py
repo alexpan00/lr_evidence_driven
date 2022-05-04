@@ -6,9 +6,9 @@ import os
 import argparse
 
 def main():
-    parser = argparse.ArgumentParser(description="filter GTF file")
+    parser = argparse.ArgumentParser(description="Script to filter a GTF file")
     parser.add_argument("lst",
-                        help="File with the transcripts to be kept")
+                        help="File with the transcripts to be kept, one per line")
     parser.add_argument("gtf",
                         help="GTF that will be filtered")
     parser.add_argument("out_dir",

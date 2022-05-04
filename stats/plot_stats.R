@@ -1,6 +1,6 @@
 # Script to generate plots and test the results of the different AUGUSTUS models
 # The F1 score is calculated at nt, exon and gene level. The number of perfect
-# protein hits and the median identity is compared at protein  level.
+# protein hits and the median identity is compared at protein level.
 
 # Libraries 
 library(ggplot2)
@@ -10,10 +10,7 @@ library(gtools)
 library(readr)
 library(viridis)
 
-# Colors 
-colores <- RColorConesa::colorConesa(8)
-
-# Functions to generate the different plots
+# Functions
 
 # harmonic mean -> the harmonic mean of the Sn and de Pr is F-score
 harmonic_mean <- function(sn, precision){
@@ -365,16 +362,21 @@ max_protein <- do.call(rbind, max_protein)
 max_protein$fr_subset <- paste(max_protein$FR, max_protein$N_genes, sep = "_")
 max_protein <- max_protein[,c(2,3,5)]
 
+# Get the number of models
+n_models <- length(results)
+# Colors 
+colores <- RColorConesa::colorConesa(n_models)
+
 # Nt level
 # Reorder the dataframe to plot the results
 max_nt_melt <- melt(max_nt, "fr_subset")
 max_nt_melt$fr_subset <- factor(max_nt_melt$fr_subset, 
                                 levels = unique(mixedsort(max_nt_melt$fr_subset)))
-#x11()
+
 p <- ggplot(max_nt_melt, aes(x=variable, y=value, fill=fr_subset))+
   geom_bar(stat="identity", position=position_dodge()) +
   ylim(c(0,100)) +
-  scale_fill_manual(values=colores[1:5])
+  scale_fill_manual(values=colores[1:n_models])
 ggsave("best_nt.png", height = 5, width = 9)
 
 # Exon level
@@ -384,7 +386,7 @@ max_exon_melt$fr_subset <- factor(max_exon_melt$fr_subset,
 p <- ggplot(max_exon_melt, aes(x=variable, y=value, fill=fr_subset))+
   geom_bar(stat="identity", position=position_dodge()) +
   ylim(c(0,100)) +
-  scale_fill_manual(values=colores[1:5])
+  scale_fill_manual(values=colores[1:n_models])
 ggsave("best_exon.png", height = 5, width = 9)
 
 # Gene level
@@ -394,7 +396,7 @@ max_gene_melt$fr_subset <- factor(max_gene_melt$fr_subset,
 p <- ggplot(max_gene_melt, aes(x=variable, y=value, fill=fr_subset))+
   geom_bar(stat="identity", position=position_dodge()) +
   ylim(c(0,100)) +
-  scale_fill_manual(values=colores[1:5])
+  scale_fill_manual(values=colores[1:n_models])
 ggsave("best_gene.png", height = 5, width = 9)
 
 # Protein level
@@ -403,7 +405,7 @@ max_protein_melt$fr_subset <- factor(max_protein_melt$fr_subset,
                                      levels = unique(mixedsort(max_protein_melt$fr_subset)))
 p <- ggplot(max_protein_melt, aes(x=variable, y=value, fill=fr_subset))+
   geom_bar(stat="identity", position=position_dodge()) +
-  scale_fill_manual(values=colores[1:5])
+  scale_fill_manual(values=colores[1:n_models])
 ggsave("best_protein.png", height = 5, width = 9)
 
 # Select the best model and save the stats
@@ -422,4 +424,5 @@ best <- best[best$N_genes == size,]
 # Add new columns: the tehcnology/strategy used and the length of the fr
 best$model <- name
 best$fr <- head(unlist(strsplit(model, "_")),1)
-write.table(best, paste0(paste("best", name, sep = "_"), ".tsv"), row.names = F, quote = F, sep = "\t")
+write.table(best, paste0(paste("best", name, sep = "_"), ".tsv"), 
+            row.names = F, quote = F, sep = "\t")

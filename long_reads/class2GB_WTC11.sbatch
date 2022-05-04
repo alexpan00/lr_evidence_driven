@@ -67,10 +67,10 @@ source activate busco
 # coverage of at least an 80%
 echo "BLAST against the reference mamalian proteome:"
 date
-#blastp -query $sqanti_output_dir/*.faa -db $BLAST_DB -out $out_dir/blastp_out.txt \
-#    -evalue 1e-50 \
-#    -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen" \
-#    -num_alignments 3 -num_threads 8 
+blastp -query $sqanti_output_dir/*.faa -db $BLAST_DB -out $out_dir/blastp_out.txt \
+    -evalue 1e-50 \
+    -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen" \
+    -num_alignments 3 -num_threads 8 
 date
 conda activate lrgasp2
 # Use the short read coverage, the blast information and other parameters 

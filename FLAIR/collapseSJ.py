@@ -8,7 +8,7 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser(description="Get a summary of multiple SJ.out.tab files")
-    parser.add_argument("SJ", help="path with the SJ.out:tab files")
+    parser.add_argument("SJ", help="path to the directory with the SJ.out.tab files")
     args = parser.parse_args()
     dir = os.path.dirname(args.SJ)
     SJ = os.path.basename(args.SJ)
