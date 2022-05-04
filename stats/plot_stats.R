@@ -8,6 +8,7 @@ library(RColorConesa)
 library(reshape2)
 library(gtools)
 library(readr)
+library(viridis)
 
 # Colors 
 colores <- RColorConesa::colorConesa(8)
@@ -164,6 +165,14 @@ sort_hm <- function(summary_df, level){
     i <- 6
     j <- 7
   }
+  if (level == "protein_identity"){
+    i <- 9
+    return(summary_df[,i])
+  }
+  if (level == "protein_PH"){
+    i <- 10
+    return(summary_df[,i])
+  }
   harmonic_mean(summary_df[,i], summary_df[,j])
 } 
 
@@ -174,7 +183,6 @@ sort_hm <- function(summary_df, level){
   # results_df: list with the summary dataframes for all the models that are
   # going to be compared
   # level: nt, exon or gene
-
 generate_heatmap <- function(results_df, level){
   m <- sapply(results_df, sort_hm, level=level)
   row.names(m) <- sort(results_df[[1]]$N_genes)
@@ -182,7 +190,64 @@ generate_heatmap <- function(results_df, level){
   heatmap(t(m),Colv = NA, Rowv = NA, scale = "none", 
                xlab="Number of genes", ylab="Length of the flanking region", 
                main=paste(level, "level"), cexRow=1.2)
+}
+
+# Function to generate heatmap using ggplot instead of R base
+generate_heatmap_gg <- function(results_df,level){
+  heatmap_data <- list()
+  for (i in 1:length(results_df)){
+    if (level == "nt"){
+      sn <- 2
+      pr <- 3
+      tmp <- results_df[[i]][,c(1,sn,pr)]
+      tmp$f_score <- harmonic_mean(tmp[,2], tmp[,3])
+    }
+    if (level == "exon"){
+      sn <- 4
+      pr <- 5
+      tmp <- results_df[[i]][,c(1,sn,pr)]
+      tmp$f_score <- harmonic_mean(tmp[,2], tmp[,3])
+    }
+    if (level == "gene"){
+      sn <- 6
+      pr <- 7
+      tmp <- results_df[[i]][,c(1,sn,pr)]
+      tmp$f_score <- harmonic_mean(tmp[,2], tmp[,3])
+    }
+    if (level == "protein_identity"){
+      id <- 9
+      tmp <- results_df[[i]][,c(1,id)]
+      names(tmp) <- c("N_genes", "f_score")
+    }
+    if (level == "protein_PH"){
+      ph <- 10
+      tmp <- results_df[[i]][,c(1,ph)]
+      names(tmp) <- c("N_genes", "f_score")
+    }
+    tmp$fr <- names(results_df)[i]
+    heatmap_data[[i]] <- tmp
+  }
   
+  heatmap_df <- do.call(rbind,heatmap_data)
+  heatmap_df$fr <- factor(heatmap_df$fr, 
+                            levels = unique(mixedsort(heatmap_df$fr)))
+  legend_title <- "F-score"
+  if (grepl("protein", level)){
+    legend_title <- "Perfect hits"
+    if (grepl("identity", level)){
+      legend_title <- "Median identity %"
+    }
+    level <- "Protein"
+  }
+  p <- ggplot(heatmap_df, aes(as.factor(N_genes), fr, fill= f_score)) + 
+    geom_tile() +
+    scale_fill_viridis(discrete=FALSE) +
+    xlab("Number of genes of the training set") +
+    ylab("Length of the flanking region") +
+    ggtitle(paste(level, "level")) + 
+    labs(fill=legend_title) +
+    theme(plot.title = element_text(hjust = 0.5))
+  p
 }
 
 # Functions to find the best model at nt, exon, gene and protein level. The model
@@ -217,7 +282,7 @@ max_hm_gene <- function(summary_dataframe, fr){
   # Get the harmonic mean at gene level
   summary_dataframe <- summary_dataframe[,c(1,6,7)]
   summary_dataframe$f1 <- harmonic_mean(summary_dataframe[,2], summary_dataframe[,3])
-  # Select the model eith the hisghest harmonic mean
+  # Select the model with the hisghest harmonic mean
   sel <- which(summary_dataframe$f1 == max(summary_dataframe$f1))
   sel_df <- summary_dataframe[sel[1],]
   sel_df$FR <- fr
@@ -277,10 +342,12 @@ for (result in results){
 
 # Generate heatmaps of the F-score at nt, exon and protein level to get and
 # overview of all the results for a paticular technology/strategy
-for (level in c("nt", "exon", "gene")){
+for (level in c("nt", "exon", "gene", "protein_PH", "protein_identity")){
   png(paste0(level, "_", "heatmap.png"))
   generate_heatmap(results_df, level)
   dev.off()
+  p <- generate_heatmap_gg(results_df, level)
+  ggsave(paste0(level, "_", "gg_heatmap.png"))
 }
 
 # Get the best model (number of genes in the training set) for each length of
