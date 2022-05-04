@@ -15,7 +15,7 @@ if [ -z "$1" ] || [ $1 == '-h' ] || [ $1 == '--help' ]
 then
     echo "Example run of the Isoseq3 pipeline"
     echo "Expected args:"
-    echo -e "\tpath to the subreads"
+    echo -e "\tpath to the subreads directory"
     echo -e "\tpath to the primers fasta file"
     echo -e "\tpath to the genome"
 fi

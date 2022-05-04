@@ -29,17 +29,17 @@ if [ -z "$1" ] || [ $1 == '-h' ] || [ $1 == '--help' ]
 then
     echo "Example run of the FLAIR pipeline"
     echo "Expected args:"
-    echo -e "\tPath to the subreads"
     echo -e "\tPath to fofn. Each line must include the path to a fastq.gz"
     echo -e "\t\twithout the fastq.gz extension"
     echo -e "\tPath to the genome"
+    echo -e "\tPath to the write the outputs"
     echo -e "\tPath to FLAIR direcotry"
 fi
 
 # ARGS
-wd=$1 
-fofn=$2
-genome=$3
+wd=$3 
+fofn=$1
+genome=$2
 flair=$4
 
 source activate flair_env
@@ -78,6 +78,6 @@ python ${flair}flair.py collapse -o FLAIR -s 2 -t 12 --stringent \
     -r ${reads_path}/*.fast.gz
 
 echo "Count the number of reads associated to each transcript and give the"
-echo "transcript a simpler name"
+echo "transcripts a simpler name"
 date
 python $utilities/FLAIR/count_rename.py FLAIR `pwd`
