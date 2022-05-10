@@ -16,3 +16,12 @@ was run on the produced transcriptomes.
 For more information about how to install and run SQANTI3:
  SQANTI3: https://github.com/ConesaLab/SQANTI3
  SQANTI3 LRGASP versions: https://github.com/LRGASP
+
+After running SQANTI3 and previous to run the script to generate a reliable set
+of genes to train the AUGUSTUS model it is necesary to create a blast database
+with proteins from species close to the organism for which you want to predict
+the genes. In this case, all the mammalian manually annotated proteins where
+used as database.
+
+Link to downlodad the manually annotated mammalian proteins: 
+    https://www.uniprot.org/uniprot/?query=taxonomy:40674(reviewed:yes)&format=fasta

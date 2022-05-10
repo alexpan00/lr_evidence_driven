@@ -6,7 +6,7 @@
 #SBATCH --mail-type=ALL # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mem-per-cpu=10gb # Per processor memory
 #SBATCH -t 10-00:00:00     # Walltime
-#SBATCH --output=isoseq.log # Standard output and error log
+#SBATCH --output=flair.log # Standard output and error log
 
 # PATH
 # check if script is started via SLURM or bash
