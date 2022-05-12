@@ -304,8 +304,10 @@ max_protein_score <- function(summary_dataframe, fr){
 # Main
 # The first argument should be the directory with all the summary files for a 
 # given technology
+colores <- RColorConesa::colorConesa(8)
 args = commandArgs(trailingOnly=TRUE)
 setwd(args[1])
+mode <- args[2]
 #setwd("/home/alejandro/Escritorio/TFM/WTC11/WTC11_AUGUSTUS_newPB/BUSCO")
 # Read the summary dataframes produce by the get_stats_WTC11.sabtch script
 results <- list.files(pattern = ".tsv")
@@ -325,7 +327,12 @@ for (result in results){
   # to train the models and the length of the flanking region
   name <- unlist(strsplit(result,"[.]"))[1]
   # get the legth of the flanking region
-  fr <- as.character(parse_number(name))
+  if (mode == "ab_initio"){
+    fr <- as.character(parse_number(name))
+  }
+  else{
+    fr <- name
+  }
   # Load the summary table as a dataframe into a list
   results_df[[fr]] <- read.delim(result)
   # Get all the plots for each lenght of the FR

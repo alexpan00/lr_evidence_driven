@@ -14,7 +14,7 @@ from Bio.Align import substitution_matrices
 
 def track_parser(track: str, query_dict:dict, ref_dict: dict)-> list:
     '''
-    Reading of the tracking file and genrarintg alingments
+    Reading of the tracking file and generating alingments
 
     Inputs:
         track (str): path to the tracker file from cuffcompare
