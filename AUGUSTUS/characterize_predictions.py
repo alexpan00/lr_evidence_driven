@@ -62,25 +62,46 @@ def filter_prediction(gene_dict: dict, gtf_pre: str, wd: str, model: str):
         for line in f_in:
             # Don't read the commented lines
             if not line.startswith("#"):
-                ll = line.split()
+                ll = line.split("\t")
                 # Ignore the lines with genes
                 if ll[feature_fild] != "gene":
                     # if the line is a transcript the transcript id is in at the
                     # end of the line
                     if ll[feature_fild] == "transcript":
-                        transcript_id = ll[info_fild]
+                        transcript_id = ll[info_fild].rstrip()
+                        
                         if transcript_id in gene_dict["PH"]:
+                            # Give the line the correct format before writing
+                            gene_info = 'gene_id "%s"; transcript_id "%s";' % \
+                                (transcript_id.split(".")[0], transcript_id)
+                            ll[info_fild] = gene_info + "\n"
+                            line = "\t". join(ll)
                             PH_out.write(line)
                         elif transcript_id not in gene_dict["TP"]:
+                            gene_info = 'gene_id "%s"; transcript_id "%s";' % \
+                                (transcript_id.split(".")[0], transcript_id)
+                            ll[info_fild] = gene_info + "\n"
+                            line = "\t". join(ll)
                             FP_out.write(line)
                     else:
                         # if it is not a transcript (CDS) the last
                         # part of the line needs to be parsed. The transcript
-                        # id is after the first "
+                        # id is after the first ". Also, it is necesary for
+                        # SQANTI3 to parse the gtf to change de CDS for exon
+                        if ll[info_fild] == "CDS":
+                            ll[info_fild] = "exon" # change CDS for exon
                         transcript_id = ll[info_fild].split('"')[1]
                         if transcript_id in gene_dict["PH"]:
+                            gene_info_list = ll[info_fild].split()
+                            gene_info = gene_info_list[-2] + " " + gene_info_list[-1] + " " + gene_info_list[-4] + " " + gene_info_list[-3] + "\n"
+                            line = "\t".join(ll[:8])
+                            line += "\t" + gene_info
                             PH_out.write(line)
                         elif transcript_id not in gene_dict["TP"]:
+                            gene_info_list = ll[info_fild].split()
+                            gene_info = gene_info_list[-2] + " " + gene_info_list[-1] + " " + gene_info_list[-4] + " " + gene_info_list[-3] 
+                            line = "\t".join(ll[:8])
+                            line += "\t" + gene_info + "\n"
                             FP_out.write(line)
                 
 
@@ -100,7 +121,7 @@ def filter_ref(found_genes: set, gtf_ref: str, wd: str, model: str):
     # Open the ref gtf and a file to write the FN
     with open(gtf_ref, "r") as f_in, open(fn_gtf, "w") as FP_out:
         for line in f_in:
-            ll = line.split()
+            ll = line.split("\t")
             transcript_id = ll[info_fild].split('"')[3]
             if transcript_id not in found_genes:
                 FP_out.write(line)
@@ -121,8 +142,11 @@ def main():
     gene_dict = parse_identity(identity_file)
 
     # Filter the prediction file using the information in the gene_dict
-    filter_prediction(gene_dict, args.pre_GTF, argparse.wd, args.model_name)
+    filter_prediction(gene_dict, args.pre_GTF, args.wd, args.model_name)
 
     # Filter the reference file to get the FN
-    filter_ref(gene_dict["ref"], args.ref_GTF, args.wd, args.model)
+    filter_ref(gene_dict["ref"], args.ref_GTF, args.wd, args.model_name)
 
+
+if __name__ == "__main__":
+    main()
