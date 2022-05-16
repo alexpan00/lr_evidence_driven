@@ -126,7 +126,7 @@ def filter_ref(found_genes: set, gtf_ref: str, wd: str, model: str):
             transcript_id = ll[info_fild].split('"')[3]
             if transcript_id not in found_genes:
                 ll[feature_fild] = "exon"
-                line = "\t".join(line)
+                line = "\t".join(ll)
                 FP_out.write(line)
         
 def main():
