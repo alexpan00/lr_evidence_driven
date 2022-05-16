@@ -116,6 +116,7 @@ def filter_ref(found_genes: set, gtf_ref: str, wd: str, model: str):
         wd (str): path to write the output files
         model (str): name of the model
     '''
+    feature_fild = 2
     info_fild = -1
     fn_gtf = os.path.join(wd, "FN_" + model + ".gtf")
     # Open the ref gtf and a file to write the FN
@@ -124,6 +125,8 @@ def filter_ref(found_genes: set, gtf_ref: str, wd: str, model: str):
             ll = line.split("\t")
             transcript_id = ll[info_fild].split('"')[3]
             if transcript_id not in found_genes:
+                ll[feature_fild] = "exon"
+                line = "\t".join(line)
                 FP_out.write(line)
         
 def main():
