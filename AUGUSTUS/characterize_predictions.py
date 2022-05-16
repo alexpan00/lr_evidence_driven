@@ -88,8 +88,8 @@ def filter_prediction(gene_dict: dict, gtf_pre: str, wd: str, model: str):
                         # part of the line needs to be parsed. The transcript
                         # id is after the first ". Also, it is necesary for
                         # SQANTI3 to parse the gtf to change de CDS for exon
-                        if ll[info_fild] == "CDS":
-                            ll[info_fild] = "exon" # change CDS for exon
+                        if ll[feature_fild] == "CDS":
+                            ll[feature_fild] = "exon" # change CDS for exon
                         transcript_id = ll[info_fild].split('"')[1]
                         if transcript_id in gene_dict["PH"]:
                             gene_info_list = ll[info_fild].split()
