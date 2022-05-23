@@ -4,8 +4,8 @@
 #SBATCH --ntasks=1 
 #SBATCH --mail-type=ALL
 #SBATCH --cpus-per-task=8 # Number of tasks = cpus
-#SBATCH --mem-per-cpu=12gb # Job memory request
-#SBATCH --time=10-00:00:00 # Time limit days-hrs:min:sec
+#SBATCH --mem-per-cpu=2gb # Job memory request
+#SBATCH --time=7-00:00:00 # Time limit days-hrs:min:sec
 #SBATCH --output=Optimize.log # Standard output and error log
 
 source activate busco

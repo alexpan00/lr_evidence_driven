@@ -53,8 +53,8 @@ def main():
     path = os.path.dirname(args.gtf)
     # Opend the gtf file with the predictions and create files for the outputs
     with open(args.gtf, "r") as f_in, \
-        open(path + "supported_" + name, "w") as supported, \
-        open(path + "non_supported_" + name, "w") as non_supported:
+        open(path + "/supported_" + name, "w") as supported, \
+        open(path + "/non_supported_" + name, "w") as non_supported:
         for line  in f_in:
             # The start of a gene is preceded by a commented line satarting 
             # with "# start"

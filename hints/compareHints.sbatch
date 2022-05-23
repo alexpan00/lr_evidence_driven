@@ -5,7 +5,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --cpus-per-task=1 # Number of tasks = cpus
 #SBATCH --mem-per-cpu=4gb # Job memory request
-#SBATCH --time=0-05:00:00 # Time limit days-hrs:min:sec
+#SBATCH --time=0-18:00:00 # Time limit days-hrs:min:sec
 #SBATCH --output=compare_hints.log # Standard output and error log
 
 # Script to compare different sources of external evidence using the same model

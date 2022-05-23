@@ -51,10 +51,10 @@ pri=$4      # Priority
 part=$5     # Trust the complete exon/intron
 wd=$6       # Working directory
 name=$7     # Name for the output
-chr=$8      # Do for only one chromosome
-mode=$9     # Type of data to be used
-sqanti_dir=${10} # Path to the SQANTI3 output
-sqanti_prefix=${11} # Prefix of the SQANTI3 outputs
+mode=$8     # Type of data to be used
+sqanti_dir=$9 # Path to the SQANTI3 output
+sqanti_prefix=${10} # Prefix of the SQANTI3 outputs
+chr=${11}      # Do for only one chromosome
 
 tmp_file="FALSE"
 cd $wd
@@ -71,7 +71,7 @@ then
     Rscript ${utilities}/filters/filterClassification.R $sqanti_dir $sqanti_prefix $wd
     tail -n +2 filtered_${sqanti_prefix}_classification.txt | cut -f1 > tmp.lst
     python ${utilities}/filters/filter_gtf.py tmp.lst $gff `pwd`
-    gff=filtered_${gff}
+    gff=filtered_$(basename ${gff})
     rm tmp.lst *classification.txt
     tmp_file="TRUE"
 fi
