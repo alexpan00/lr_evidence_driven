@@ -10,9 +10,9 @@ def main():
     parser.add_argument("wd", help="Path to save the output")
     parser.add_argument("sam_file", help="path to the sam file")
     args = parser.parse_args()
-
+    sam_name = os.path.basename(args.sam_file)
     read_name = 0 # the read name is in the fist fild of the line
-    new_sam = os.path.join(args.wd, "renamed_" + args.sam_file)
+    new_sam = os.path.join(args.wd, "renamed_" + sam_name)
 
     with open(args.sam_file, "r") as f_in, open(new_sam, "w") as f_out:
         next(f_in)
