@@ -71,7 +71,11 @@ def main():
             if line.startswith("# hint groups fully obeyed:"):
                 n_hint = int(line.split()[-1])
                 if n_hint > 0:
-                    gene.supported = True
+                    while not line.startswith("# incompatible"):
+                        line = next(f_in)
+                        evidence = line.split()[1]
+                        if evidence != "RM":
+                            gene.supported = True
             # The line "# end gene xx" marks the end of the gene. At this
             # the gene will be written to the file that it belong depending
             # on the supported atribute
