@@ -26,16 +26,25 @@ is much more limited and there are no introns.
 The scripts in the long_reads folder provide examples on how to run two different 
 pipelines, FLAIR and Isoseq3 to generate transcripts. After running this pipelines
 SQANTI3 should be run on the resulting transcriptomes both for quality control and
-prediction of coding transcripts. However, there is a lot of redundancy in the
+prediction of coding transcripts. 
+
+However, there is a lot of redundancy in the
 resulting transcripts with many isoforms per gene and also wrongly define trainscripts. 
 To train a HMM for gene prediction this kind of redudancy and errors should be avoided. 
 In order to limit the redundancy and the number of false transcripts the class2GB
 script provides different filtering methods to obtain a set of reliable genes that
-can be used to train a HMM for gene prediction.
+can be used to train a HMM for gene prediction. 
+
+The script testFR allows the training
+and testing of the models with different flanking regions and number of genes in the 
+training set.
+
 
 As mentioned before the other step in which long reads can be used for genome 
 annotation is as evidence during the gene prediction step. The necesary script
 to use long reads as external evidence can be found in the hints folder.
 
-
+Most of the scripts have a normal version and a WTC11 version. The former was
+design to test the results against a known reference annotation, while the first
+was design for the annotation of new species.
 
