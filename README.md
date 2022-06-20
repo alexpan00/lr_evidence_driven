@@ -8,7 +8,7 @@ To do so, the scripts in this repository provide a set of tools to test differen
 ways in which long reads can be used in genome annotation and also the necesary
 resources to apply from testing on a known genome to an unannotated genome.
 
-## Long reads
+## Long reads for genome annotation
 
 The main idea of this project was testing what kind of third generation sequencing
 technology, PacBio, Oxford Nanopore or the combiantion of both, and in which step
