@@ -6,6 +6,14 @@ gff with the gene names modified to be more informative
 
 import argparse
 
+def replace_last_tabs_with_space(line):
+    # Split the line from the right based on "\t" delimiter
+    parts = line.rsplit("\t", 3)
+    
+    # Join the parts with a space
+    updated_line = " ".join(parts)
+    
+    return updated_line
 
 def gene2list(gene_file: str)-> list:
     '''
@@ -51,6 +59,7 @@ def concatenar(l_genes, path):
                     f_out.write(line)
                 else:
                     line = line.replace(gen2replace, gen)
+                    line = replace_last_tabs_with_space(line)
                     f_out.write(line)
     f_out.close()
 
