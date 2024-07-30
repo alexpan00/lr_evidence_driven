@@ -1,50 +1,55 @@
-# Eukaryotic genome structural annotation using long reads
+# Eukaryotic Genome Annotation Using Long Reads
 
-This is the repository of my master thesis. The aim of this project is testing
-the best approach to use long reads in the structural annotation of genomes and
-use that strategy the annotate the florida manatee genome. 
+## Overview
 
-To do so, the scripts in this repository provide a set of tools to test different
-ways in which long reads can be used in genome annotation and also the necesary
-resources to apply from testing on a known genome to an unannotated genome.
+This repository contains the code, data, and supplementary materials for the paper:
 
-## Long reads for genome annotation
+**Evaluation of strategies for evidence-driven genome annotation using long-read RNA-seq** 
 
-The main idea of this project was testing what kind of third generation sequencing
-technology, PacBio, Oxford Nanopore or the combiantion of both, and in which step
-of the strucutral annotation would work better.
+**Authors:** Alejandro Paniagua, Cristina Agustín
 
-The two steps in which the long reads data can be used for the structural annotaion
-are the training of the Hidden Markov Models (HMM) and as external evidence during
-the prediction of the genes.
+## Abstract
 
-To use the long reads to train a HMM, first genes must be identified in those 
-reads. The process of identifying a gene in a transcript is much easier than
-finding the same gene in the genome mainly for two reasons, the space of search
-is much more limited and there are no introns.
-
-The scripts in the long_reads folder provide examples on how to run two different 
-pipelines, FLAIR and Isoseq3 to generate transcripts. After running this pipelines
-SQANTI3 should be run on the resulting transcriptomes both for quality control and
-prediction of coding transcripts. 
-
-However, there is a lot of redundancy in the
-resulting transcripts with many isoforms per gene and also wrongly define trainscripts. 
-To train a HMM for gene prediction this kind of redudancy and errors should be avoided. 
-In order to limit the redundancy and the number of false transcripts the class2GB
-script provides different filtering methods to obtain a set of reliable genes that
-can be used to train a HMM for gene prediction. 
-
-The script testFR allows the training
-and testing of the models with different flanking regions and number of genes in the 
-training set.
+The aim of this project is to test the most effective approach for using long reads in the structural annotation of genomes and to apply this strategy to annotate the Florida manatee genome. The scripts in this repository provide tools to evaluate different methods for incorporating long reads into genome annotation, from testing on a known genome to annotating an unannotated genome.
 
 
-As mentioned before the other step in which long reads can be used for genome 
-annotation is as evidence during the gene prediction step. The necesary script
-to use long reads as external evidence can be found in the hints folder.
+## Project Details
 
-Most of the scripts have a normal version and a WTC11 version. The former was
-design to test the results against a known reference annotation, while the first
-was design for the annotation of new species.
+### Long Reads for Genome Annotation
+
+The main objective is to evaluate which third-generation sequencing technology—PacBio, Oxford Nanopore, or a combination of both—is most effective, and at which stage of structural annotation they perform best.
+
+The two key steps where long reads can be utilized in structural annotation are:
+1. **Training of Hidden Markov Models (HMM)**
+2. **Providing external evidence during gene prediction**
+
+#### Training HMMs with Long Reads
+
+To use long reads for HMM training, genes must first be identified in the reads. Identifying genes in transcripts is easier than in the genome due to the limited search space and absence of introns.
+
+The `long_reads` folder contains scripts for running two pipelines, FLAIR and Isoseq, to generate transcripts. After running these pipelines, SQANTI3 should be used for quality control and coding transcript prediction.
+
+However, the resulting transcripts often exhibit redundancy and inaccuracies. Redundancy and errors must be minimized to train an HMM for gene prediction. The `class2GB` script offers filtering methods to obtain a reliable set of genes for HMM training.
+
+The `testFR` script allows for the training and testing models with different flanking regions and training set sizes.
+
+#### Using Long Reads as External Evidence
+
+Long reads can also be used as external evidence during the gene prediction step. The necessary scripts for this application are located in the `hints` folder.
+
+### Scripts Overview
+
+- **FLAIR and Isoseq3 Pipelines:** Generate transcripts from long reads.
+- **SQANTI3:** Quality control and coding transcript prediction.
+- **class2GB:** Filter transcripts to reduce redundancy and errors for HMM training.
+- **testFR:** Train and test HMMs with varying parameters.
+- **Hints Scripts:** Use long reads as external evidence in gene prediction.
+
+### Versions
+
+Some scripts have two versions:
+- **WTC11 Version:** Designed to test results against a known reference annotation.
+- **Normal Version:** Designed for annotating new species.
+
+
 
