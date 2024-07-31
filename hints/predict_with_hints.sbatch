@@ -1,12 +1,12 @@
 #!/bin/bash
-#SBATCH --job-name=predict_with_hints # Job name
+#SBATCH --job-name=pwh_2 # Job name
 #SBATCH --partition=medium # Partition (queue)
 #SBATCH --ntasks=1 
 #SBATCH --mail-type=ALL
 #SBATCH --cpus-per-task=1 # Number of tasks = cpus
 #SBATCH --mem-per-cpu=8gb # Job memory request
-#SBATCH --time=3-00:00:00 # Time limit days-hrs:min:sec
-#SBATCH --output=predict_with_hints.log # Standard output and error log
+#SBATCH --time=7-00:00:00 # Time limit days-hrs:min:sec
+#SBATCH --output=predict_with_hints2.log # Standard output and error log
 
 # Script to predict using hints
 
@@ -48,7 +48,7 @@ echo "hints: $hints"
 echo "Output dir: $out_dir"
 date;pwd
 source activate busco
-#mkdir $out_dir
+mkdir $out_dir
 cd $out_dir
 
 augustus --species=$model --extrinsicCfgFile=$cfg --hintsfile=$hints \

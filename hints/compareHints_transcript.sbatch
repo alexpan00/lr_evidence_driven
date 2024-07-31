@@ -46,7 +46,6 @@ fi
 source activate busco
 mkdir $out_dir
 cd $out_dir
-cd ..
 # Read the configurarion file
 while read -r line
 do

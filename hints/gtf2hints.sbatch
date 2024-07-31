@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1 
 #SBATCH --mail-type=ALL
 #SBATCH --cpus-per-task=1 # Number of tasks = cpus
-#SBATCH --mem-per-cpu=12gb # Job memory request
+#SBATCH --mem-per-cpu=20gb # Job memory request
 #SBATCH --time=0-00:10:00 # Time limit days-hrs:min:sec
 #SBATCH --output=hints.log # Standard output and error log
 
@@ -25,7 +25,7 @@ utilities=$(dirname $(dirname $SCRIPT_PATH))
 # Check args
 if [ -z "$1" ] || [ $1 == '-h' ] || [ $1 == '--help' ]
 then
-    echo "Script to generate hints from gtf file."
+    echo "Script to generate hints from gtf file. To use trasncript mode it requieres to have run SQANTI3 on the input gtf"
     echo "Args:"
     echo -e "\tgtf/gff complete path"
     echo -e "\tUTR (TRUE/FALSE) include UTRS in the hints file"
@@ -34,9 +34,12 @@ then
     echo -e "\tTrust the complete exon and introns or used as support (TRUE/FALSE)"
     echo -e "\tPath of the gtf file directory"
     echo -e "\tName for the outputs"
-    echo -e "\tChromosome (optional) Do only for one chromosome ej: chr19"
-    echo -e "\tMode: type of data that will be converted to hints."
+    echo -e "\tMode: type of data that will be converted to hints. If transcript is selected some filtering will be applied to remove trasncripts with features of bad quality"
     echo -e "\tCan be read, transcript or gene"
+    echo -e "\tPath to the SQANTI3 output"
+    echo -e "\tPrefix of the SQANTI3 outputs"
+    echo -e "\tChromosome (optional) Do only for one chromosome ej: chr19"
+
     exit 0
 fi
 
@@ -68,6 +71,7 @@ source activate lrgasp2
 # Use the SQANTI3 classification file to keep only the protein 
 if [ "$mode" == "transcript" ]
 then
+    echo "transcript mode"
     Rscript ${utilities}/filters/filterClassification.R $sqanti_dir $sqanti_prefix $wd
     tail -n +2 filtered_${sqanti_prefix}_classification.txt | cut -f1 > tmp.lst
     python ${utilities}/filters/filter_gtf.py tmp.lst $gff `pwd`
