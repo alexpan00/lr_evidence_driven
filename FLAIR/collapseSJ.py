@@ -21,14 +21,17 @@ def main():
             record = line.split()
             # The coverage of the SJ is in the fild 6. Convert it to int 
             record[6] = int(record[6])
+            record[7] = int(record[7])
             if aux_record:
                 # If the two SJ are the same sum the coverage
                 if aux_record[1] == record[1] and aux_record[2] == record[2]:
                     aux_record[6] += record[6]
+                    aux_record[7] += record[7]
                 # If the SJ are not the same write the first SJ and store
                 # the new one
                 else:
                     aux_record[6] = str(aux_record[6])
+                    aux_record[7] = str(aux_record[7])
                     record_str = "\t".join(aux_record)
                     f_out.write(record_str + "\n")
                     aux_record = record
@@ -36,6 +39,7 @@ def main():
                 aux_record = record
     # Write the last record
     aux_record[6] = str(aux_record[6])
+    aux_record[7] = str(aux_record[7])
     record_str = "\t".join(aux_record)
     f_out.write(record_str + "\n")
     f_out.close()

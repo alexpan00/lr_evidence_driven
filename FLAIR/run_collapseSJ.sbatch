@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1 
 #SBATCH --mail-type=ALL
 #SBATCH --cpus-per-task=1 # Number of tasks = cpus
-#SBATCH --mem-per-cpu=30gb # Job memory request
+#SBATCH --mem-per-cpu=1gb # Job memory request
 #SBATCH --time=0-02:00:00 # Time limit days-hrs:min:sec
 #SBATCH --output=sortSJ.log # Standard output and error log
 
@@ -38,8 +38,9 @@ cd $in_dir
 cat *SJ.out.tab > compelteSJ.out.tab
 
 # Order the file
-bedtools sort -i compelteSJ.out.tab > sorted_completeSJ.out.tab
+#bedtools sort -i compelteSJ.out.tab > sorted_completeSJ.out.tab
+sort -k1,1 -k2,2n -k3,3n compelteSJ.out.tab > sorted_completeSJ.out.tab
 rm compelteSJ.out.tab
 
 # Collapse the splice junctions and sum the coverage
-python3 ${utilities}collapseSJ.py $in_dir/sorted_completeSJ.out.tab
+python3 ${utilities}/collapseSJ.py $in_dir/sorted_completeSJ.out.tab
