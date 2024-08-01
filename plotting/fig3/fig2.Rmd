@@ -1,0 +1,496 @@
+
+---
+title: "Analisis WTC11"
+author: "Cristina Agustín García"
+date: "2024-04-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#Librerías que se van a utilizar:
+library(ggplot2)
+library(RColorConesa)
+library(reshape2)
+library(gtools)
+library(readr)
+library(viridis)
+library(readxl)
+library(tidyverse)
+library(fmsb)
+library(ggpubr)
+library(data.table)
+library(DT)
+library(stringr)
+library(dplyr)
+library(grid)
+library(gridExtra)
+```
+
+```{r}
+#Colores generales
+colores <- RColorConesa::colorConesa(10, palette = "main")
+# Colores graficos:
+colores_graficos <- c("#15918A", "#F58A53", "#FDC659","#AA8C65")
+```
+
+```{r}
+mytheme <- theme(plot.title = element_text(size = 10, face = "bold",hjust = 0.5),
+                 plot.subtitle = element_text(size = 10,hjust = 0.5),
+                 legend.text = element_text(size=8),
+                 legend.title = element_text(size=9),
+                 axis.title.x = element_text(size=10, margin = margin(t = 1, r = 0, b = 0, l = 0)),
+                 axis.title.y = element_text(size=10,  margin = margin(t = 0, r = 1, b = 0, l = 0)),
+                 axis.text.x = element_text(size=8),
+                 axis.text.y = element_text(size=8),
+                 legend.key.size = unit(1,"line")) +
+          theme(strip.text = element_text(size = 10)) +
+  theme(plot.margin = unit(c(0.15,0.15,.15,.15), "cm"),
+        text = element_text(family = "Helvetica"),  # Set font to Helvetica
+  legend.spacing.x = unit(0.1, 'cm'),         # Adjust horizontal spacing
+  legend.spacing.y = unit(0.1, 'cm'),         # Adjust vertical spacing
+  legend.margin = margin(0, 0, 0, 0))
+```
+
+
+#1.- GENOME ANNOTATION:
+
+## 1.1- Lectura de los archivos
+
+```{r}
+#Lectura de archivos:
+ab_initio_ed_pb=read.delim("ab_vs_hints_new_names.csv",stringsAsFactors = F,sep = "\t")
+
+ed_sr_reads=read.delim("sr_wtc11_reads_cufflinks.tsv",stringsAsFactors = F,sep = "\t")
+
+ed_sr_ass=read.delim("sr_wtc11_stringtie_cufflinks.tsv",stringsAsFactors = F,sep = "\t")
+
+transcriptome=read_excel("Cufflinks_transcriptome_wtc11.xlsx")
+```
+
+##1.2.- Creación del conjunto de datos
+
+```{r}
+#Hacemos una copia con los dataframes filtrados:
+ab_initio_ed_pb_copy <- ab_initio_ed_pb[,1:7]
+ed_sr_reads_copy <- ed_sr_reads[,1:7]
+ed_sr_ass_copy <- ed_sr_ass[,1:7]
+transcriptome_copy <- transcriptome
+
+#Creamos una columna con la tecnología:
+ab_initio_ed_pb_copy$Tech <- c("Ab-initio", "PacBio")
+ed_sr_reads_copy$Tech <- "Illumina-reads"
+ed_sr_ass_copy$Tech <- "Illumina-assembly"
+transcriptome_copy$Tech <- c("Illumina-assembly", "PacBio")
+
+#Cambiamos el nombre de una celda (la de N_genes):
+ed_sr_reads_copy$N_genes[ed_sr_reads_copy$N_genes == "comparison"] <- "evidence_driven"
+ed_sr_ass_copy$N_genes[ed_sr_ass_copy$N_genes == "comparison"] <- "evidence_driven"
+transcriptome_copy$N_genes <- "transcriptome"
+```
+
+```{r}
+#Creamos el conjunto de datos final:
+conjunto_datos <- rbind(ab_initio_ed_pb_copy,ed_sr_reads_copy,ed_sr_ass_copy,transcriptome_copy)
+
+#Cambiamos el nombre de la columna (N_genes): 
+colnames(conjunto_datos)[1] <- "Approach"
+```
+
+
+```{r}
+#Función de la media armónica
+#Harmonic mean -> the harmonic mean of the Sn and de Pr is F-score
+harmonic_mean <- function(sn, precision){
+  2*(sn*precision)/(sn+precision)
+}
+
+#Añadir la columna F1-score:
+conjunto_datos$nt_fscore <- harmonic_mean(as.numeric(conjunto_datos$nt_sn), as.numeric(conjunto_datos$nt_sp))
+conjunto_datos$exon_fscore <- harmonic_mean(as.numeric(conjunto_datos$exon_sn), as.numeric(conjunto_datos$exon_sp))
+conjunto_datos$gene_fscore <- harmonic_mean(as.numeric(conjunto_datos$gene_sn), as.numeric(conjunto_datos$gene_sp))
+
+#Reorganizamos columnas:
+conjunto_datos= conjunto_datos%>% relocate(Tech, .after = Approach)
+```
+
+Ahora vamos a extraer la información por columnas:
+
+```{r}
+#Se crea un dataframe vacio
+columns = c("Approach", "Technology","level","metric", "value") 
+df_final  = data.frame(matrix(nrow = 54, ncol = length(columns))) 
+colnames(df_final) = columns
+
+#Obtenemos los valores que irán en el dataframe:
+level <- c()
+metric <- c()
+#Quitamos dos tecnologías
+for (i in colnames(conjunto_datos[,-c(1:2)])){
+  splited_variable <- strsplit(as.character(i), "_")
+  level <- c(level, rep(splited_variable[[1]][1], 6)) #Hay 6 tecnologías/aproximaciones
+  metric <- c(metric, rep(splited_variable[[1]][2], 6))
+}
+
+#Se añaden esas columnas:
+df_final$level <- level
+df_final$metric <- metric
+
+#Obtenemos la columna Approach y Technology:
+df_final$Approach <- rep(conjunto_datos$Approach, 3) #Esta columna se repite 3 veces (nt, exon, gene)
+df_final$Technology <- rep(conjunto_datos$Tech, 3) #Esta columna se repite 3 veces (nt, exon, gene)
+
+#Obtenemos los valores de cada columna y lo incorporamos al conjunto de datos:
+values <- c()
+for (i in 3:ncol(conjunto_datos)){
+  values <- c(values, conjunto_datos[,i])
+  }
+df_final$value <- values
+```
+
+```{r}
+#Renombramos los valores de algunas variables:
+
+#Nivel: exon, nt o gen
+df_final$level <- as.character(df_final$level)
+df_final$level[df_final$level == "nt"] <- "Nt"
+df_final$level[df_final$level == "exon"] <- "Exon"
+df_final$level[df_final$level == "gene"] <- "Gene"
+
+#Metrica:Sp, Sn y F1-score:
+df_final$metric <- as.character(df_final$metric)
+df_final$metric[df_final$metric  == "sp"] <- "Precision"
+df_final$metric[df_final$metric == "sn"] <- "Sensitivity"
+df_final$metric[df_final$metric == "fscore"] <- "F1-score"
+
+#Aproximación:
+df_final$Approach <- as.character(df_final$Approach)
+df_final$Approach[df_final$Approach == "ab_initio"] <- "Ab initio"
+df_final$Approach[df_final$Approach == "evidence_driven"] <- "Evidence-driven"
+df_final$Approach[df_final$Approach == "transcriptome"] <- "Evidence-based"
+
+#Convertimos a factor algunas variables:
+df_final$level <- factor(df_final$level, levels=c('Gene', 'Exon', 'Nt'))
+df_final$metric <- factor(df_final$metric, levels=c('Precision','Sensitivity', 'F1-score'))
+df_final$Approach <- factor(df_final$Approach, levels=c('Ab initio', 'Evidence-driven', 'Evidence-based'))
+df_final$Technology <- as.factor(df_final$Technology)
+df_final$value <- as.numeric(df_final$value)
+```
+
+## 1.3.- Creación del conjunto de datos:
+
+```{r}
+#Crear el conjunto de datos:
+conjunto_gene <- filter(df_final, level == "Gene")
+
+#Redondear la columna del F1-score:
+conjunto_gene$value <- round(as.numeric(conjunto_gene$value),1)
+
+#Convertir las métricas en caracter (?): 
+conjunto_gene$metric <- as.character(conjunto_gene$metric)
+```
+
+##1.4.- Gráficas
+
+```{r}
+#Obtenemos los conjuntos de datos por separado según cada aproximación:
+conjunto_gene_ab_initio <- filter(conjunto_gene, Approach == "Ab initio")
+conjunto_gene_transcriptome <- filter(conjunto_gene, Approach == "Evidence-based")
+conjunto_gene_ed <- filter(conjunto_gene, Approach == "Evidence-driven")
+```
+
+
+```{r}
+plot_g_ai <- ggplot(conjunto_gene_ab_initio, aes(x = as.factor(Approach), y= value, fill=metric))+
+  geom_bar(stat = "identity",color="black",width = 0.60, position = "dodge", linewidth=  .25)+
+  #geom_bar(mapping = aes(y= value))+
+  scale_x_discrete(label = "                Ab initio") +
+  theme_classic()+labs(x = "", y = "Value (%)", fill = "Metric")+
+  ylim(0,50)+
+  theme(mytheme)+
+  scale_fill_manual(values =  c("#FDC659", "#15918A", "#F58A53")) + theme(legend.key.size = unit(0.2, "cm"))+theme(axis.text.y = element_text(face = "italic")) +
+  coord_flip() 
+
+plot_g_ai
+```
+```{r}
+plot_g_t <-ggplot(conjunto_gene_transcriptome, aes(x = Technology, y= value, fill=as.factor(metric)))+
+  geom_bar(stat = "identity", position = "dodge",color="black", width = 0.60, linewidth=  .25)+
+  theme_classic()+labs(x = "", y = "Value (%)", fill = "Metric")+
+  ylim(0,50)+theme(mytheme)+
+  scale_fill_manual(values =  c("#FDC659", "#15918A", "#F58A53"))+
+  coord_flip()
+  #geom_text(aes(label=value), position=position_dodge(width=0.6), vjust=-0.25, size=5, family = "helvetica")
+
+plot_g_t
+```
+
+```{r}
+plot_g_ed <-ggplot(conjunto_gene_ed, aes(x = Technology, y= value, fill=as.factor(metric)))+
+  geom_bar(stat = "identity", position = "dodge",color="black", width = 0.60, linewidth=  .25)+
+  theme_classic()+labs(x = "", y = "Value (%)", fill = "Metric")+
+  ylim(0,50)+theme(mytheme)+theme(plot.title = element_text(hjust = 0.5, face="italic"))+
+  scale_fill_manual(values =  c("#FDC659", "#15918A", "#F58A53"))+
+  coord_flip()
+
+plot_g_ed
+```
+
+
+```{r}
+p_ver2 <- ggpubr::ggarrange(plot_g_ai,
+             plot_g_t, plot_g_ed, nrow=3, ncol=1, common.legend = T, legend = "bottom", labels = c("C", "D", "E"), font.label = list(size=10, family= "Helvetica"), heights = c(.55,.75,1))
+p_ver2
+```
+
+
+
+#2.- THROUGHPUT DE EVIDENCE-DRIVEN VS EVIDENCE-BASED
+
+## 2.1.- Lectura de los archivos:
+
+### 2.1.1.- Subsampling:
+
+```{r}
+# Transcriptoma:
+stats_10_transcriptome=read_excel("subsampling_10.xlsx")
+stats_15_transcriptome=read_excel("subsampling_15.xlsx")
+stats_20_transcriptome=read_excel("subsampling_20.xlsx")
+stats_25_transcriptome=read_excel("subsampling_25.xlsx")
+stats_50_transcriptome=read_excel("subsampling_5.xlsx")
+stats_75_transcriptome=read_excel("subsampling_75.xlsx")
+stats_complete_transcriptome=read_excel("subsampling_complete.xlsx")
+
+# Evidence-driven:
+stats_10=read_excel("subsample_0_1.xlsx")
+stats_15=read_excel("subsample_0_15.xlsx")
+stats_20=read_excel("subsample_0_20.xlsx")
+stats_25=read_excel("subsample_0_25.xlsx")
+stats_50=read_excel("subsample_0_5.xlsx")
+stats_75=read_excel("subsample_0_75.xlsx")
+stats_complete=read_excel("subsample_complete.xlsx")
+```
+
+### 2.1.2.- Missed loci:
+
+```{r}
+missed_loci_transcriptoma=read_excel("missed_loci.xlsx")
+missed_loci_ed=read_excel("missing_loci.xlsx")
+```
+
+## 2.2.- Creación de los conjunto de datos:
+
+### 2.2.1.- Subsampling:
+
+```{r}
+#Harmonic mean -> the harmonic mean of the Sn and de Pr is F-score
+harmonic_mean <- function(sn, precision){
+  2*(sn*precision)/(sn+precision)
+}
+```
+
+#### 2.2.1.1.- Transcriptoma:
+
+```{r}
+#Hacemos una copia con los dataframes:
+stats_10_copy_transcriptome <- stats_10_transcriptome
+stats_15_copy_transcriptome <- stats_15_transcriptome
+stats_20_copy_transcriptome <- stats_20_transcriptome
+stats_25_copy_transcriptome <- stats_25_transcriptome
+stats_50_copy_transcriptome <- stats_50_transcriptome
+stats_75_copy_transcriptome <- stats_75_transcriptome
+stats_completo_copy_transcriptome <- stats_complete_transcriptome
+
+#Creamos una columna con el subsampling:
+stats_10_copy_transcriptome$Sample <- "10"
+stats_15_copy_transcriptome$Sample <- "15"
+stats_20_copy_transcriptome$Sample <- "20"
+stats_25_copy_transcriptome$Sample <- "25"
+stats_50_copy_transcriptome$Sample <- "50"
+stats_75_copy_transcriptome$Sample <- "75"
+stats_completo_copy_transcriptome$Sample <- "100"
+
+#Creamos la columna F1-score:
+stats_10_copy_transcriptome$f1score <- round(harmonic_mean(as.numeric(stats_10_copy_transcriptome$Sn),
+                                                           as.numeric(stats_10_copy_transcriptome$Sp)),1)
+stats_15_copy_transcriptome$f1score <- round(harmonic_mean(as.numeric(stats_15_copy_transcriptome$Sn),
+                                                           as.numeric(stats_15_copy_transcriptome$Sp)),1)
+stats_20_copy_transcriptome$f1score <- round(harmonic_mean(as.numeric(stats_20_copy_transcriptome$Sn),
+                                                           as.numeric(stats_20_copy_transcriptome$Sp)),1)
+stats_25_copy_transcriptome$f1score <- round(harmonic_mean(as.numeric(stats_25_copy_transcriptome$Sn),
+                                                           as.numeric(stats_25_copy_transcriptome$Sp)),1)
+stats_50_copy_transcriptome$f1score <-  round(harmonic_mean(as.numeric(stats_50_copy_transcriptome$Sn),
+                                                            as.numeric(stats_50_copy_transcriptome$Sp)),1)
+stats_75_copy_transcriptome$f1score <-  round(harmonic_mean(as.numeric(stats_75_copy_transcriptome$Sn)
+                                                            , as.numeric(stats_75_copy_transcriptome$Sp)),1)
+stats_completo_copy_transcriptome$f1score <-  round(harmonic_mean(as.numeric(stats_completo_copy_transcriptome$Sn)
+                                                                  , as.numeric(stats_completo_copy_transcriptome$Sp)),1)
+```
+
+```{r}
+#Creamos el conjunto de datos final:
+conjunto_datos_transcriptome <- rbind(stats_10_copy_transcriptome, stats_15_copy_transcriptome, stats_20_copy_transcriptome, stats_25_copy_transcriptome,stats_50_copy_transcriptome,stats_75_copy_transcriptome,stats_completo_copy_transcriptome)
+
+#Cambiar de clase las variables:
+conjunto_datos_transcriptome$Sample <- as.numeric(conjunto_datos_transcriptome$Sample)
+conjunto_datos_transcriptome$Sn <- as.numeric(conjunto_datos_transcriptome$Sn)
+conjunto_datos_transcriptome$Sp <- as.numeric(conjunto_datos_transcriptome$Sp)
+conjunto_datos_transcriptome$f1score <- as.numeric(conjunto_datos_transcriptome$f1score)
+conjunto_datos_transcriptome$Type <- as.character(conjunto_datos_transcriptome$Type)
+
+#Crear la columna para el approach:
+conjunto_datos_transcriptome$Approach  <- "Evidence-based"
+```
+
+#### 2.2.1.2.- Evidence-driven: 
+
+```{r}
+#Hacemos una copia con los dataframes:
+stats_10_copy <- stats_10
+stats_15_copy <- stats_15
+stats_20_copy <- stats_20
+stats_25_copy <- stats_25
+stats_50_copy <- stats_50
+stats_75_copy <- stats_75
+stats_completo_copy <- stats_complete
+
+#Creamos una columna con el subsampling:
+stats_10_copy$Sample <- "10"
+stats_15_copy$Sample <- "15"
+stats_20_copy$Sample <- "20"
+stats_25_copy$Sample <- "25"
+stats_50_copy$Sample <- "50"
+stats_75_copy$Sample <- "75"
+stats_completo_copy$Sample <- "100"
+
+#Creamos la columna F1-score:
+stats_10_copy$f1score <- round(harmonic_mean(as.numeric(stats_10_copy$Sn), as.numeric(stats_10_copy$Sp)),1)
+stats_15_copy$f1score <- round(harmonic_mean(as.numeric(stats_15_copy$Sn), as.numeric(stats_15_copy$Sp)),1)
+stats_20_copy$f1score <- round(harmonic_mean(as.numeric(stats_20_copy$Sn), as.numeric(stats_20_copy$Sp)),1)
+stats_25_copy$f1score <- round(harmonic_mean(as.numeric(stats_25_copy$Sn), as.numeric(stats_25_copy$Sp)),1)
+stats_50_copy$f1score <-  round(harmonic_mean(as.numeric(stats_50_copy$Sn), as.numeric(stats_50_copy$Sp)),1)
+stats_75_copy$f1score <-  round(harmonic_mean(as.numeric(stats_75_copy$Sn), as.numeric(stats_75_copy$Sp)),1)
+stats_completo_copy$f1score <-  round(harmonic_mean(as.numeric(stats_completo_copy$Sn), as.numeric(stats_completo_copy$Sp)),1)
+```
+
+```{r}
+#Creamos el conjunto de datos final:
+conjunto_datos <- rbind(stats_10_copy, stats_15_copy, stats_20_copy, stats_25_copy,stats_50_copy,stats_75_copy,stats_completo_copy)
+
+#Cambiar de clase las variables:
+conjunto_datos$Sample <- as.numeric(conjunto_datos$Sample)
+conjunto_datos$Sn <- as.numeric(conjunto_datos$Sn)
+conjunto_datos$Sp <- as.numeric(conjunto_datos$Sp)
+conjunto_datos$f1score <- as.numeric(conjunto_datos$f1score)
+conjunto_datos$Type <- as.character(conjunto_datos$Type)
+
+#Creamos un conjunto de datos:
+conjunto_datos$Approach  <- "Evidence-driven"
+```
+
+### 2.2.2.- Missed-loci:
+
+```{r}
+#Hacemos una copia de los archivos:
+missed_loci_transcriptoma_c <- missed_loci_transcriptoma
+missed_loci_ed_c <- missed_loci_ed
+
+#Generamos una columna nueva con la aproximación:
+missed_loci_transcriptoma_c$Approach <- "Evidence-based"
+missed_loci_ed_c$Approach <- "Evidence-driven"
+```
+
+```{r}
+#Generamos el conjunto de datos final:
+missed_loci <- as.data.frame(rbind(missed_loci_transcriptoma_c,missed_loci_ed_c))
+
+#Reestructuramos las columnas en clases distintas:
+missed_loci$Subsampling <- as.numeric(missed_loci$Subsampling)
+missed_loci$Missed_loci <- as.numeric(missed_loci$Missed_loci)
+missed_loci$Approach <- as.factor(missed_loci$Approach)
+```
+
+
+## 2.3.- Gráficas 
+
+### 2.3.1. Subsampling
+
+#### 2.3.1.1.- Preparación del conjunto de datos:
+
+```{r}
+#Filtrado
+conjunto_datos_transcriptome_gene <- conjunto_datos_transcriptome[conjunto_datos_transcriptome$Type=="Gene",]
+conjunto_datos_gene <- conjunto_datos[conjunto_datos$Type=="Gene",]
+
+#Conjunto final:
+conjunto_datos <- rbind(conjunto_datos_transcriptome_gene, conjunto_datos_gene)
+```
+
+```{r}
+#Crear un conjunto de datos nuevo:
+
+#Filtrar por métrica
+stats_gene_Sn <- conjunto_datos[,c(2,4,6)]
+stats_gene_Sn$metric <- "Sensitivity"
+
+stats_gene_Sp <- conjunto_datos[,c(3,4,6)]
+stats_gene_Sp$metric <- "Precision"
+
+#Crear conjunto de datos final:
+stats_gene_final <- data.frame(Sample=c(stats_gene_Sn$Sample, stats_gene_Sp$Sample), Value = c(stats_gene_Sn$Sn, stats_gene_Sp$Sp), Metric=c(stats_gene_Sn$metric, stats_gene_Sp$metric), Approach = c(stats_gene_Sn$Approach,stats_gene_Sp$Approach))
+```
+
+#### 2.3.1.2.- Gráficas
+
+```{r}
+saturation_curve <- ggplot(stats_gene_final)+
+  geom_line(aes(x=Sample,y=Value, linetype=Approach,col=Metric), size = 1)+
+  geom_point(aes(x=Sample,y=Value, col=Metric)) +
+  labs(x="Subsampling of reads (%)",y="Score (%)")+theme_classic()+ scale_x_continuous(breaks=c(25,50,75,100))+ylim(25,53)+scale_color_manual(values=colores_graficos )+theme(mytheme)+
+  theme(legend.position = "bottom", legend.box = "vertical", legend.spacing.y = unit(0.001, 'cm') ) +
+  guides(
+    color = guide_legend(order = 1),
+    linetype = guide_legend(order = 2)
+  )
+
+
+saturation_curve
+```
+
+### 2.3.2.- Missed loci
+
+```{r}
+ml <- ggplot(data=missed_loci, aes(x=Subsampling, y=Missed_loci, group=Approach)) +
+  geom_line(size=1, aes(linetype= Approach))+
+  geom_point(aes(x=Subsampling,y=Missed_loci)) +
+  labs(x = "Subsampling of reads (%)", y = "Missed loci (%)", color = "Approach")+theme_classic()+theme(mytheme)+theme(legend.position = "bottom")+scale_color_manual(values=colores_graficos) + theme(
+  plot.margin = margin(t = 0, r = 0, b = 1.1, l = 0, unit = "cm")
+)
+
+ml 
+
+ml_no_margin <- ggplot(data=missed_loci, aes(x=Subsampling, y=Missed_loci, group=Approach)) +
+  geom_line(size=1, aes(linetype= Approach))+
+  geom_point(aes(x=Subsampling,y=Missed_loci)) +
+  labs(x = "Subsampling of reads (%)", y = "Missed loci (%)", color = "Approach")+theme_classic()+theme(mytheme)+theme(legend.position = "bottom")+scale_color_manual(values=colores_graficos) 
+
+
+ml_no_margin
+```
+
+
+## 2.4.- Juntar gráficas - artículo:
+
+
+```{r}
+ggarrange(ggarrange(saturation_curve,ml_no_margin, nrow=2,labels = c("A", "B"),
+          font.label = list(size = 10, color = "black")), p_ver2, ncol = 2)
+
+ggsave("Figura_3_complete_gr.jpg", device = "jpeg", width=7.5, height=6.55,limitsize = FALSE, dpi=300)
+
+```
+

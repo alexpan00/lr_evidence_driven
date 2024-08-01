@@ -1,0 +1,359 @@
+---
+title: "fig1"
+author: "Alejandro Paniagua"
+output: html_document
+---
+
+## Load requiered packages
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(cowplot)
+library(stringr)
+```
+
+## theme and colors
+
+```{r}
+xaxislevelsF1 <- c("full-splice_match","incomplete-splice_match","novel_in_catalog","novel_not_in_catalog", "genic","antisense","fusion","intergenic","genic_intron");
+xaxislabelsF1 <- c("FSM", "ISM", "NIC", "NNC", "Genic_Genomic",  "Antisense", "Fusion","Intergenic", "Genic_Intron")
+
+cat.palette = c("FSM"="#6BAED6", "ISM"="#FC8D59", "NIC"="#78C679", 
+                "NNC"="#EE6A50", "Genic_Genomic"="#969696", "Antisense"="#66C2A4", "Fusion"="goldenrod1",
+                "Intergenic" = "darksalmon", "Genic_Intron"="#41B6C4", "Others"= "#969696")
+
+mytheme <- theme(plot.title = element_text(size = 10, face = "bold",hjust = 0.5), 
+                 plot.subtitle = element_text(size = 10,hjust = 0.5), 
+                 legend.text = element_text(size=8),
+                 legend.title = element_text(size=9),
+                 axis.title.x = element_text(size=10, margin = margin(t = 1, r = 0, b = 0, l = 0)), 
+                 axis.title.y = element_text(size=10,  margin = margin(t = 0, r = 1, b = 0, l = 0)), 
+                 axis.text.x = element_text(size=8), 
+                 axis.text.y = element_text(size=8), 
+                 legend.key.size = unit(1,"line")) +
+          theme(strip.text = element_text(size = 10)) + 
+  theme(plot.margin = unit(c(0.15,0.15,.15,.15), "cm"),
+        text = element_text(family = "Helvetica"),  # Set font to Helvetica
+  legend.spacing.x = unit(0.1, 'cm'),         # Adjust horizontal spacing
+  legend.spacing.y = unit(0.1, 'cm'),         # Adjust vertical spacing
+  legend.margin = margin(0, 0, 0, 0)) 
+```
+
+
+## Function to create a summary from SQANTI3 classification file
+
+```{r}
+create_summary <- function(class_file){
+  sc_counts <- class_file %>% 
+    group_by(structural_category) %>% 
+    summarise(total=n())
+  return(sc_counts)
+}
+```
+
+## Function to create BUSCO completness plot
+
+
+```{r}
+busco_plot <- function(df, i){
+    legend_pos <- "none"
+    if (i == 1){
+      legend_pos <- "top"
+    }
+    ylab <- ""
+    if (i==3){
+      ylab="\n%BUSCOs"
+    }
+    my_width <- 20
+    my_height <- 15
+    my_unit <- "cm"
+    
+    # Colors
+    my_colors <- c("#56B4E9", "#3492C7", "#F0E442", "#F04442")
+    # Bar height ratio
+    my_bar_height <- 0.75
+    labsize = 1
+    # Legend
+    my_title <- "BUSCO Assessment Results"
+
+    # Font
+    my_family <- "Helvetica"
+    my_size_ratio <- 1
+
+  figure <- ggplot() + 
+      geom_bar(aes(y = my_percentage, x = my_species, fill = category), position = position_stack(reverse = TRUE), data = df, stat="identity", 
+    width=my_bar_height) + 
+      coord_flip() + 
+      theme_gray(base_size = 8) + 
+      scale_y_continuous(labels = c("0","20","40","60","80","100"), breaks = c(0,20,40,60,80,100)) + 
+      scale_fill_manual(values = my_colors,labels =c(" Complete (C) and single-copy (S)  ",
+                                                     " Complete (C) and duplicated (D)",
+                                                     " Fragmented (F)  ",
+                                                     " Missing (M)")) +   
+      xlab("") + 
+      ylab(ylab) + 
+      theme(plot.title = element_text(family=my_family, hjust=0.5, colour = "black", size = 10, face = 
+    "bold")) + 
+      theme(legend.position=legend_pos,legend.title = element_blank()) + 
+      theme(legend.text = element_text(family=my_family, size = 9)) + 
+      theme(panel.background = element_rect(color="#FFFFFF", fill="white")) + 
+      theme(panel.grid.minor = element_blank()) + 
+      theme(panel.grid.major = element_blank()) +
+      theme(axis.text.y = element_text(family=my_family, colour = "black", size = 9)) + 
+      theme(axis.text.x = element_text(family=my_family, colour = "black", size = 9)) + 
+      theme(axis.line = element_line(size=1*my_size_ratio, colour = "black")) + 
+      theme(axis.ticks.length = unit(.25, "cm")) + 
+      theme(axis.ticks.y = element_line(colour="white", size = 0)) + 
+      theme(axis.ticks.x = element_line(colour="#222222")) + 
+      theme(axis.ticks.length = unit(0.2, "cm")) + 
+      theme(axis.title.x = element_text(family=my_family, size=10)) + 
+      guides(fill = guide_legend(override.aes = list(colour = NULL))) +
+      guides(fill=guide_legend(nrow=2,byrow=TRUE))
+      for(i in rev(c(1:length(levels(df$my_species))))){
+        detailed_values <- df$my_values[df$my_species==df$my_species[df$my_species==levels(df$my_species)[i]]]
+        total_buscos <- sum(detailed_values)
+        figure <- figure + 
+        annotate("text", label=paste("C:", detailed_values[1] + detailed_values[2], " [S:", detailed_values[1], 
+        ", D:", detailed_values[2], "], F:", detailed_values[3], ", M:", detailed_values[4], ", n:", total_buscos, 
+         sep=""),  y=3, x = i, size = 3, colour = "black", hjust=0, family=my_family)
+
+      }
+  figure
+}
+```
+
+
+
+## reads genes and transcripts data (classification files)
+
+```{r}
+path2summary <- c("genes", "transcripts")
+list_summaries <- list()
+for(path in path2summary){
+  list_class <- list.files(path = path, full.names = T)
+  list_class <- list_class[!file.info(list_class)$isdir]
+  for (file in list_class){
+    class_file <- read.delim(file)
+    sc_count <- create_summary(class_file)
+    level <- dirname(file)
+    sc_count$level <- level
+    tech <- strsplit(basename(file), "_")[[1]][1]
+    sc_count$tech <- tech
+    if ("FSM" %in% sc_count$structural_category){
+      sc_count$structural_category = factor(sc_count$structural_category,
+                                        labels = xaxislabelsF1,
+                                        levels = xaxislabelsF1,
+                                        ordered=TRUE)
+      
+    } 
+    else {
+      sc_count$structural_category = factor(sc_count$structural_category,
+                                  labels = xaxislabelsF1,
+                                  levels = xaxislevelsF1,
+                                  ordered=TRUE)
+    }
+    list_summaries[[paste(level,tech, sep = "_")]] <- sc_count
+  }
+}
+```
+
+
+##reads data (summary was generated in UJC analysis)
+
+```{r}
+for (file in list.files(path = "reads", full.names = T)){
+  sc_count <- read.delim(file, header = F)
+  level <- dirname(file)
+  sc_count$level <- level
+  tech <- strsplit(basename(file), "_")[[1]][1]
+  sc_count$tech <- tech
+  sc_count$V1 = factor(sc_count$V1,
+                            labels = xaxislabelsF1,
+                            levels = xaxislevelsF1,
+                            ordered=TRUE)
+  colnames(sc_count) <- c( "structural_category","total","level","tech" )
+  list_summaries[[paste(level,tech, sep = "_")]] <- sc_count
+}
+```
+
+## Create the combined dataframe with the appropiate factors
+
+```{r}
+final_df <- do.call(rbind, list_summaries)
+final_df$level <- factor(final_df$level,
+                         labels = c("Read", "Transcript", "Collapsed\nTranscript"),
+                         levels = c("reads", "transcripts", "genes"))
+final_df$tech <- factor(final_df$tech,
+                        labels = c("ONT", "PacBio", "MIX"),
+                        levels = c("ONT", "PB", "MIX"))
+
+
+```
+
+
+## Plot categories with others besides the 4 main SQANTI categories
+
+```{r}
+final_df_rest <- final_df
+final_df_rest$structural_category <- factor(final_df_rest$structural_category, levels = c(levels(final_df$structural_category), "Others"))
+top_categories <- c("FSM", "NIC", "NNC", "ISM")
+final_df_rest[!final_df_rest$structural_category %in% top_categories, "structural_category"] <- "Others"
+final_df_rest <- final_df_rest %>% 
+  group_by(tech, level, structural_category) %>% 
+  summarise(total=sum(total))
+```
+
+## Create barplot
+
+```{r}
+p1 <-  ggplot(final_df_rest, aes(x=tech, y=total, fill=structural_category))+
+  geom_bar(position = "fill", stat = "identity", color="black", size=0.25) +
+  scale_fill_manual(values = cat.palette)+ facet_wrap(~level) +
+  labs(fill='Structural  \ncategory') +
+  ylab("Distribution of\nstructural categories") +
+  theme_classic() + mytheme +
+  theme(axis.title.x = element_blank()) + theme(legend.position = "bottom") +
+  theme(legend.key.size = unit(0.5, "cm"))
+p1
+```
+
+
+## Plot redundancy (Fig.1B) and completness (Sup Fig.2)
+
+```{r}
+a <- list.files(path="redundancy",pattern = "busco", full.names = T)
+l <- list()
+i <- 1
+l_plots <- list()
+for (file in a){
+  l[[i]] <- readRDS(file=file)
+  i <- i +1
+}
+l[[2]]$tec <- "ONT"
+for (i in 1:3){
+  tmp <- l[[i]]
+  tmp2 <- tmp[tmp$my_species %in% c("TAMA", "CD-Hit"),]
+  tmp2$my_species <- factor(c(rep("with CD-HIT collapsing", 4), rep("without CD-HIT collapsing", 4)))
+  l_plots[[l[[i]]$tec[1]]] <- busco_plot(tmp2,i)
+  tmp <- tmp[tmp$category %in% c("S", "D"),]
+  tot <- tmp %>% group_by(my_species) %>% 
+    summarise(suma =sum(my_values))
+  
+  tot <- rep(tot$suma, each=2)
+  tmp$freq <- tmp$my_values/tot
+  tmp <- tmp[tmp$category=="D",]
+  l[[i]] <- tmp
+}
+final_dataset <- do.call(rbind, l)
+
+final_dataset$my_species <- factor(final_dataset$my_species, c("Before\ncollapsing", "TAMA", "CD-Hit","Transcript"))
+final_dataset$my_species[final_dataset$my_species == "Before\ncollapsing"] <- "Transcript"
+
+final_dataset <- final_dataset[final_dataset$my_species == "CD-Hit" | final_dataset$my_species == "TAMA",]
+final_dataset$tec <- factor(final_dataset$tec, levels = c("ONT", "PacBio", "MIX"))
+final_dataset$my_species <- factor(final_dataset$my_species,levels =  c("CD-Hit","TAMA"), labels = c("CD-HIT","TAMA"))
+
+
+final_dataset <- final_dataset[,c(1,5,6)]
+
+```
+
+## Fig 2B
+
+```{r}
+p <- ggplot(final_dataset, aes(x=freq, y=my_species)) +
+  geom_point(size=2) + 
+  geom_segment( aes(x=0, xend=freq, y=my_species, yend=my_species),linewidth = 0.8) +
+  facet_grid(tec~., scales="free_y")+theme(plot.title = element_text(hjust = 0.5)) +
+  theme_classic() +
+  scale_color_manual(values=c("#FDC659", "#15918A", "#F58A53")) +
+  xlab("Proportion of duplicated \nBUSCO genes") + ylab("") +
+  mytheme + xlim(c(0,1)) + theme(axis.text.x = element_text(angle = 45,hjust = 1)) +
+  theme(plot.margin = unit(c(0.1,0.3,.1,.1), "cm")) 
+p
+```
+
+
+## Fig 2C 
+
+
+```{r}
+ab_initio <- readRDS("stats/data2plot_ab_initio.rds")
+ab_initio$value <- as.double(ab_initio$value)
+ab_initio$level <- factor(ab_initio$level, levels = c("Nt", "Exon", "Gene"), labels = c("Nt level", "Exon level", "Gene level"))
+ab_initio$metric <- factor(ab_initio$metric, levels = c("F1-score", "Pr", "Sn"), labels = c("F1-score", "Precision", "Sensitivity"))
+ab_initio$tec <- factor(ab_initio$tec,
+                        labels = c("BUSCO", "MIX", "PacBio", "ONT"),
+                        levels = c( "BUSCO", "MIX", "PacBio", "ONT"))
+```
+
+
+```{r}
+ab_initio_gene <- ab_initio %>% filter(level == "Gene level")
+
+p_ab <- ggplot(ab_initio_gene, aes(value, tec, color= metric)) + 
+  geom_hline(yintercept = ab_initio_gene$tec, linetype = "dotdash", color = "lightgrey") +
+  geom_point(size = 1.5) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme_classic() +
+  scale_color_manual(values=c("#FDC659", "#15918A", "#F58A53")) +
+  xlab("Score (%)") + ylab("Training set") +
+  guides(color=guide_legend(title="Metric")) +
+  mytheme +
+  theme(legend.position = "bottom") 
+p_ab
+```
+
+
+
+## Fig 2D
+
+```{r}
+evidence_driven <- readRDS("stats/data2plot_hints.rds")
+evidence_driven$value <- as.double(evidence_driven$value)
+evidence_driven$process <- factor(evidence_driven$process,
+                         labels = c("\nCollapsed\nTranscript", "\nTranscript\n", "Read"),
+                         levels = c("Collapsed Transcript", "Transcript","Read"  ))
+evidence_driven$level <- factor(evidence_driven$level, levels = c("Nt", "Exon", "Gene"), labels = c("Nt level", "Exon level", "Gene level"))
+evidence_driven$metric <- factor(evidence_driven$metric, levels = c("F1-score", "Precision", "Sensitivity"))
+evidence_driven$N_genes <- factor(evidence_driven$N_genes ,
+                        labels = c("ONT", "PacBio","MIX"),
+                        levels = c( "ONT", "PacBio","MIX"))
+```
+
+```{r}
+evidence_driven_gene <- evidence_driven %>% filter(level == "Gene level")
+p_evidence <- ggplot(evidence_driven_gene, aes(value, process, color= metric)) + 
+  geom_hline(yintercept = str_to_title(evidence_driven_gene$process), linetype = "dotdash", color = "lightgrey") +
+  geom_point(size = 1.5) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme_classic() +
+  facet_grid(N_genes ~ ., drop = TRUE, scales="free_x", space = "free_x") +
+  scale_color_manual(values=c("#FDC659", "#15918A", "#F58A53")) +
+  xlab("Score (%)") + ylab("Experimental evidence") +
+  guides(color=guide_legend(title="Metrics")) +
+  mytheme +
+  theme(legend.position = "bottom") 
+
+p_evidence
+```
+
+
+## Combined plot
+
+```{r}
+final_p_top <- plot_grid(p1, p,  labels = "AUTO", rel_widths = c(7, 3), label_size = 10)
+final_p_bottom <- plot_grid(p_ab + theme(legend.position = "none"), p_evidence+ theme(legend.position = "none"),  labels = c("C", "D"), label_size = 10)
+grobs <- ggplotGrob(p_ab)$grobs
+legend <- grobs[[which(sapply(grobs, function(x) x$name) == "guide-box")]]
+final_p_bottom <- plot_grid(final_p_bottom, legend, ncol = 1, rel_heights = c(1, .1))
+final_p <- plot_grid(final_p_top, final_p_bottom, nrow =2)
+
+final_p_supp_completness <- plot_grid(plotlist = l_plots,  labels = paste(c("A", "B", "C"), names(l_plots)), label_size = 10, nrow = 3, rel_heights = c(1,0.65,.65))
+ggsave(filename = "complettness_supp.svg", final_p_supp_completness, height = 5, width = 6.5)
+ggsave(filename = "complettness_supp.jpeg", final_p_supp_completness, height = 5, width = 6.5)
+ggsave( filename = "gene_sets.jpeg", final_p, height = 5, width = 6)
+ggsave(filename = "gene_sets.svg", final_p, height = 5, width = 6)
+```
+

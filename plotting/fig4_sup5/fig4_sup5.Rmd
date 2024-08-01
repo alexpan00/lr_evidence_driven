@@ -1,0 +1,709 @@
+---
+title: "Plots_figuras_manatee_articulo"
+author: "Cristina Agustín García"
+date: "2024-04-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Librerías que se van a utilizar:
+library(ggplot2)
+library(RColorConesa)
+library(reshape2)
+library(gtools)
+library(readr)
+library(viridis)
+library(readxl)
+library(tidyverse)
+library(fmsb)
+library(ggpubr)
+```
+
+```{r}
+colores <- RColorConesa::colorConesa(4, palette = "main")
+```
+
+```{r}
+mytheme <- theme(plot.title = element_text(size = 10, face = "bold",hjust = -0.07),
+                 plot.subtitle = element_text(size = 10,hjust = 0.5),
+                 legend.text = element_text(size=8),
+                 legend.title = element_text(size=9),
+                 axis.title.x = element_text(size=10, margin = margin(t = 1, r = 0, b = 0, l = 0)),
+                 axis.title.y = element_text(size=10,  margin = margin(t = 0, r = 1, b = 0, l = 0)),
+                 axis.text.x = element_text(size=8),
+                 axis.text.y = element_text(size=8),
+                 legend.key.size = unit(1,"line")) +
+          theme(strip.text = element_text(size = 10)) +
+  theme(plot.margin = unit(c(0.15,0.15,.15,.15), "cm"),
+        text = element_text(family = "Helvetica"),  # Set font to Helvetica
+  legend.spacing.x = unit(0.1, 'cm'),         # Adjust horizontal spacing
+  legend.spacing.y = unit(0.1, 'cm'),         # Adjust vertical spacing
+  legend.margin = margin(0, 0, 0, 0))
+```
+
+# 1.- GENOME ANNOTATION
+
+# 1.1.- Lectura de archivos:
+
+```{r}
+#Archivos de Alejandro:
+manatee_summary_ab_initio_Alejandro <- read_excel("ab_initio.xlsx")
+
+#Archivos nuevos:
+manatee_summary_sqanti_Cris <- read.delim("BUSCO_transcriptome_complete.tsv", stringsAsFactors = F,sep = "\t")
+
+manatee_summary_filtered_sqanti_busco <-  read_excel("busco_filtered_transcriptome_old_line.xlsx")
+
+manatee_summary_busco_Cris_nueva_opt <- read_excel("busco_evidence_driven_opcion.xlsx")
+```
+
+# 1.2.- Creación del conjunto de datos:
+
+```{r}
+#Renombramos las columnas de los archivos:
+nombres_columnas <- c('Complete and single-copy BUSCOs (S)', 'Complete and duplicated BUSCOs (D)','Fragmented BUSCOs (F)', 'Missing BUSCOs (M)')
+
+#Isoseq-Cristina:
+manatee_summary_sqanti_Cris_copy <- manatee_summary_sqanti_Cris
+colnames(manatee_summary_sqanti_Cris_copy) <- nombres_columnas
+
+#Isoseq-filtered
+manatee_summary_filtered_sqanti_busco_copy <- manatee_summary_filtered_sqanti_busco
+colnames(manatee_summary_filtered_sqanti_busco_copy) <- nombres_columnas
+
+#ab initio:
+manatee_summary_ab_initio_Alejandro_copy <- manatee_summary_ab_initio_Alejandro
+colnames(manatee_summary_ab_initio_Alejandro_copy) <- nombres_columnas
+
+#Busco-Cristina-nueva-opción:
+manatee_summary_busco_Cris_nueva_opt_copy <- manatee_summary_busco_Cris_nueva_opt
+colnames(manatee_summary_busco_Cris_nueva_opt_copy) <- nombres_columnas
+```
+
+## a) Archivo completo:
+
+```{r}
+#Creación del conjunto de datos intermedio:
+nombre_filas <- c("Evidence-based", "Evidence-based (filtered)", "ab initio", "Evidence-driven")
+conjunto_manatee <- rbind(manatee_summary_sqanti_Cris_copy,
+                          manatee_summary_filtered_sqanti_busco_copy,
+                          manatee_summary_ab_initio_Alejandro_copy,
+                          manatee_summary_busco_Cris_nueva_opt_copy)
+
+rownames(conjunto_manatee) <- nombre_filas
+```
+
+Ahora separamos dependiendo del BUSCO status
+
+```{r}
+#Single-copy:
+s <- as.data.frame(conjunto_manatee$`Complete and single-copy BUSCOs (S)`)
+s$Approach <- row.names(conjunto_manatee)
+s$Type <- "Complete and single-copy BUSCOs (S)"
+s <- s %>% 
+  rename(
+    n = `conjunto_manatee$\`Complete and single-copy BUSCOs (S)\``
+    )
+
+#Duplicated:
+d <- as.data.frame(conjunto_manatee$`Complete and duplicated BUSCOs (D)`)
+d$Approach <- row.names(conjunto_manatee)
+d$Type <- "Complete and duplicated BUSCOs (D)"
+d <- d %>% 
+  rename(
+    n = `conjunto_manatee$\`Complete and duplicated BUSCOs (D)\``
+    )
+
+#Fragmented:
+f <- as.data.frame(conjunto_manatee$`Fragmented BUSCOs (F)`)
+f$Approach <- row.names(conjunto_manatee)
+f$Type <- "Fragmented BUSCOs (F)"
+f <- f %>% 
+  rename(
+    n = `conjunto_manatee$\`Fragmented BUSCOs (F)\``
+    )
+
+#Missing:
+m <- as.data.frame(conjunto_manatee$`Missing BUSCOs (M)`)
+m$Approach <- row.names(conjunto_manatee)
+m$Type <- "Missing BUSCOs (M)"
+m <- m %>% 
+  rename(
+    n = `conjunto_manatee$\`Missing BUSCOs (M)\``
+    )
+```
+
+Una vez obtenidos los subconjuntos, se genera el conjunto de datos final:
+
+```{r}
+#Creación del conjunto final:
+busco <- rbind(s,d,f,m)
+
+#Factorizar variables:
+busco$Type <- factor(busco$Type,levels=c('Complete and single-copy BUSCOs (S)', 'Complete and duplicated BUSCOs (D)','Fragmented BUSCOs (F)', 'Missing BUSCOs (M)'))
+
+busco$Approach  <- factor(busco$Approach, levels=c('Evidence-based', 'Evidence-based (filtered)','ab initio','Evidence-driven'))
+```
+
+## b) Obtener el DF sin la BUSCO completeness del transcriptoma completo:
+
+```{r}
+#Creación del conjunto de datos intermedio:
+nombre_filas <- c("Evidence-based", "ab initio", "Evidence-driven")
+conjunto_manatee <- rbind(
+                          manatee_summary_filtered_sqanti_busco_copy,
+                          manatee_summary_ab_initio_Alejandro_copy,
+                          manatee_summary_busco_Cris_nueva_opt_copy)
+
+rownames(conjunto_manatee) <- nombre_filas
+```
+
+Ahora separamos dependiendo del BUSCO status
+
+```{r}
+#Single-copy:
+s <- as.data.frame(conjunto_manatee$`Complete and single-copy BUSCOs (S)`)
+s$Approach <- row.names(conjunto_manatee)
+s$Type <- "Complete and single-copy BUSCOs (S)"
+s <- s %>% 
+  rename(
+    n = `conjunto_manatee$\`Complete and single-copy BUSCOs (S)\``
+    )
+
+#Duplicated:
+d <- as.data.frame(conjunto_manatee$`Complete and duplicated BUSCOs (D)`)
+d$Approach <- row.names(conjunto_manatee)
+d$Type <- "Complete and duplicated BUSCOs (D)"
+d <- d %>% 
+  rename(
+    n = `conjunto_manatee$\`Complete and duplicated BUSCOs (D)\``
+    )
+
+#Fragmented:
+f <- as.data.frame(conjunto_manatee$`Fragmented BUSCOs (F)`)
+f$Approach <- row.names(conjunto_manatee)
+f$Type <- "Fragmented BUSCOs (F)"
+f <- f %>% 
+  rename(
+    n = `conjunto_manatee$\`Fragmented BUSCOs (F)\``
+    )
+
+#Missing:
+m <- as.data.frame(conjunto_manatee$`Missing BUSCOs (M)`)
+m$Approach <- row.names(conjunto_manatee)
+m$Type <- "Missing BUSCOs (M)"
+m <- m %>% 
+  rename(
+    n = `conjunto_manatee$\`Missing BUSCOs (M)\``
+    )
+```
+
+Una vez obtenidos los subconjuntos, se genera el conjunto de datos final:
+
+```{r}
+#Creación del conjunto final:
+busco <- rbind(s,d,f,m)
+
+#Factorizar variables:
+busco$Type <- factor(busco$Type,levels=c('Complete and single-copy BUSCOs (S)', 'Complete and duplicated BUSCOs (D)','Fragmented BUSCOs (F)', 'Missing BUSCOs (M)'))
+
+busco$Approach  <- factor(busco$Approach, levels=c('Evidence-based','ab initio','Evidence-driven'))
+```
+
+## 1.3.- Gráfica:
+
+```{r}
+busco$busco_status <- c(rep("Single-copy",3), rep("Duplicated",3), rep("Fragmented",3), rep("Missing", 3))
+busco$busco_status <- factor(busco$busco_status, levels = c("Single-copy", "Duplicated", "Fragmented", "Missing"))
+busco$Approach <- factor(busco$Approach, levels = c("Evidence-based", "ab initio", "Evidence-driven"))
+busco_manatee <- ggplot(busco, aes(x = Approach, y= n, fill=as.factor(busco_status)))+
+  geom_bar(stat = "identity", position = "stack",color="black",linewidth=.25) +
+  theme_classic()+labs(x = "Annotation approach", y = "Nº of genes", fill = "Busco status")+
+  theme(mytheme)+theme(legend.position = "bottom")+
+  scale_fill_manual(values =  colores) + guides(fill=guide_legend(nrow=2,byrow=TRUE, title = "BUSCO status")) +
+  theme(legend.key.size = unit(0.5,"line"))
+
+busco_manatee
+```
+
+
+# 2.- NCBI COMPARISON:
+
+## 2.1.- Lectura de los archivos:
+
+### 2.1.1.- SQANTI classification:
+
+```{r}
+#Leemos los classification de SQANTI:
+gge_manatee <- read.delim("manatee_sqanti_busco_gge_classification.txt",stringsAsFactors = F,sep = "\t")
+ncbi_manatee <- read.delim("manatee_ncbi_prot_classification.txt",stringsAsFactors = F,sep = "\t")
+```
+
+
+
+### 2.1.2.- Isoformas por gen
+
+```{r}
+#Numero de isoformas por gen:
+isoforms_ncbi <- read.delim("isoforms_per_gene_ncbi.tsv", header = TRUE)
+isoforms_gge <- read.delim("isoforms_per_gene_gge.tsv", header = FALSE)
+```
+
+### 2.1.3.- Supported fusion vs no fusion:
+
+```{r}
+sup_fus_n_fus <- read.delim("sup_gen_fusion_iso_vs_no_fusion_supported_real.tsv", header = FALSE)
+```
+
+## 2.2.- Preparación de los archivos:
+
+### 2.2.1.- SQANTI classification:
+
+```{r}
+#Hacer copias:
+gge_manatee_copy <- gge_manatee 
+ncbi_manatee_copy <- ncbi_manatee
+```
+#### a) Número de isoformas por categoría
+
+```{r}
+#Creación del archivo con el número de isoformas por categoría:
+gge_manatee_copy %>% 
+  count(structural_category) -> gge_manatee_copy2
+
+ncbi_manatee_copy %>% 
+  count(structural_category) -> ncbi_manatee_copy2
+
+#Creación de una nueva columna:
+gge_manatee_copy2$type <- "LRB annotation vs NCBI annotation"
+ncbi_manatee_copy2$type <- "NCBI annotation vs LRB annotation"
+```
+```{r}
+#Creación del conjunto de datos final:
+sqanti_df <- rbind(gge_manatee_copy2, ncbi_manatee_copy2)
+
+#Renombrar valores:
+sqanti_df$structural_category[sqanti_df$structural_category == "full-splice_match"] <- "FSM"
+sqanti_df$structural_category[sqanti_df$structural_category == "incomplete-splice_match"] <- "ISM"
+sqanti_df$structural_category[sqanti_df$structural_category == "novel_in_catalog"] <- "NIC"
+sqanti_df$structural_category[sqanti_df$structural_category == "novel_not_in_catalog"] <- "NNC"
+sqanti_df$structural_category[sqanti_df$structural_category == "genic"] <- "Genic Genomic"
+sqanti_df$structural_category[sqanti_df$structural_category == "antisense"] <- "Antisense"
+sqanti_df$structural_category[sqanti_df$structural_category == "intergenic"] <- "Intergenic"
+sqanti_df$structural_category[sqanti_df$structural_category == "fusion"] <- "Fusion"
+
+#Factorizar variables:
+sqanti_df$structural_category <- factor(sqanti_df$structural_category, 
+                                                 levels=c('FSM', 'ISM',
+                                                          'NIC', 'NNC',
+                                                          'Genic Genomic',
+                                                          'Antisense',
+                                                          'Fusion',
+                                                          'Intergenic'))
+sqanti_df$type <- factor(sqanti_df$type, levels=c('LRB annotation vs NCBI annotation', 'NCBI annotation vs LRB annotation'))
+```
+
+#### b) Porcentaje de isoformas por categoría
+
+```{r}
+#Creación del archivo con el número de isoformas por categoría:
+gge_manatee_copy %>% 
+    group_by(structural_category) %>% 
+    summarise(percent = 100 * n() / nrow(gge_manatee_copy) ) -> gge_manatee_copy_perc
+
+ncbi_manatee_copy %>% 
+    group_by(structural_category) %>% 
+    summarise(percent = 100 * n() / nrow(ncbi_manatee_copy) ) -> ncbi_manatee_copy_perc
+
+#Creación de una nueva columna:
+gge_manatee_copy_perc$type <- "LRB annotation vs NCBI annotation"
+ncbi_manatee_copy_perc$type <- "NCBI annotation vs LRB annotation"
+```
+
+
+```{r}
+#Creación del conjunto de datos final:
+sqanti_df_perc <- rbind(gge_manatee_copy_perc, ncbi_manatee_copy_perc)
+
+#Renombrar valores:
+sqanti_df_perc$structural_category[sqanti_df_perc$structural_category == "full-splice_match"] <- "FSM"
+sqanti_df_perc$structural_category[sqanti_df_perc$structural_category == "incomplete-splice_match"] <- "ISM"
+sqanti_df_perc$structural_category[sqanti_df_perc$structural_category == "novel_in_catalog"] <- "NIC"
+sqanti_df_perc$structural_category[sqanti_df_perc$structural_category == "novel_not_in_catalog"] <- "NNC"
+sqanti_df_perc$structural_category[sqanti_df_perc$structural_category == "genic"] <- "Genic Genomic"
+sqanti_df_perc$structural_category[sqanti_df_perc$structural_category == "antisense"] <- "Antisense"
+sqanti_df_perc$structural_category[sqanti_df_perc$structural_category == "intergenic"] <- "Intergenic"
+sqanti_df_perc$structural_category[sqanti_df_perc$structural_category == "fusion"] <- "Fusion"
+
+#Factorizar variables:
+sqanti_df_perc$structural_category <- factor(sqanti_df_perc$structural_category, 
+                                                 levels=c('FSM', 'ISM',
+                                                          'NIC', 'NNC',
+                                                          'Genic Genomic',
+                                                          'Antisense',
+                                                          'Fusion',
+                                                          'Intergenic'))
+sqanti_df_perc$type <- factor(sqanti_df_perc$type, levels=c('LRB annotation vs NCBI annotation', 'NCBI annotation vs LRB annotation'))
+```
+
+
+### 2.2.2.- Isoformas por gen
+
+```{r}
+#Hacemos copias:
+isoforms_ncbi_c <- isoforms_ncbi
+isoforms_gge_c <- isoforms_gge
+```
+
+```{r}
+#Remodelamos los datos:
+isoforms_ncbi_c$X=NULL
+colnames(isoforms_gge_c) <- c("gene_id","number_isoforms")
+
+#Creamos columnas nuevas:
+isoforms_ncbi_c$Type <- "TriManLat1.0 annotation"
+isoforms_gge_c$Type <- "LRB annotation"
+```
+
+```{r}
+#Clasificar el numero de isoformas
+#NCBI:
+num_cat_ncbi <- list()
+for (line in 1:nrow(isoforms_ncbi_c)) {
+  num = as.numeric(isoforms_ncbi_c[line,2])
+  if (num==1) {
+    num_cat_ncbi <- append(num_cat_ncbi, "1")
+  }
+  if (num==2) {
+    num_cat_ncbi <- append(num_cat_ncbi, "2-3")
+  }
+  if (num ==3) {
+    num_cat_ncbi <- append(num_cat_ncbi, "2-3")
+  }
+   if (num==4) {
+    num_cat_ncbi <- append(num_cat_ncbi, "4-5")
+   }
+  if (num==5) {
+    num_cat_ncbi <- append(num_cat_ncbi, "4-5")
+   }
+  if (num>=6) {
+  num_cat_ncbi <- c(num_cat_ncbi, ">=6")
+  }
+}
+
+#GGE:
+num_cat_gge <- list()
+for (line in 1:nrow(isoforms_gge_c)) {
+  num = as.numeric(isoforms_gge_c[line,2])
+  if (num==1) {
+    num_cat_gge <- append(num_cat_gge, "1")
+  }
+  if (num==2) {
+    num_cat_gge <- append(num_cat_gge, "2-3")
+  }
+  if (num ==3) {
+    num_cat_gge <- append(num_cat_gge, "2-3")
+  }
+   if (num==4) {
+    num_cat_gge <- append(num_cat_gge, "4-5")
+   }
+  if (num==5) {
+    num_cat_gge <- append(num_cat_gge, "4-5")
+   }
+  if (num>=6) {
+  num_cat_gge <- c(num_cat_gge, ">=6")
+  }
+}
+```
+
+```{r}
+#Obtener el vector con la clasificación del numero de isoformas:
+#NCBI:
+size_1=length(isoforms_ncbi_c$gene_id) #Obtenemos el número total de filas
+vect1=c() #Vector en el que incluiremos la clasificación
+for (i in 1:size_1) {
+  val=num_cat_ncbi[[i]] #Obtenemos el valor de la clasificación
+  vect1 <- c(vect1, val)
+}
+
+#GGE:
+size_2=length(isoforms_gge_c$gene_id)  #Obtenemos el número total de filas
+vect2=c() #Vector en el que incluiremos la clasificación
+for (i in 1:size_2) {
+  val=num_cat_gge[[i]] #Obtenemos el valor de la clasificación
+  vect2 <- c(vect2, val)
+}
+```
+
+```{r}
+#Factorizamos la variable y añadimos el vector de clasificación como columna:
+isoforms_ncbi_c$num_cat <- factor(vect1, levels = c("1","2-3","4-5",">=6"))
+isoforms_gge_c$num_cat <- factor(vect2, levels = c("1","2-3","4-5",">=6"))
+```
+
+```{r}
+#Obtenemos un dataframe con el porcentaje de cada categoría estructural:
+#NCBI:
+isoforms_ncbi_percent <- isoforms_ncbi_c %>% 
+    group_by(num_cat) %>% 
+    summarise(percent = 100 * n() / nrow(isoforms_ncbi_c) )
+
+#GGE:
+isoforms_gge_percent <- isoforms_gge_c %>% 
+    group_by(num_cat) %>% 
+    summarise( percent = 100 * n() / nrow(isoforms_gge_c) )
+```
+
+```{r}
+#Especificamos el tipo y factorizamos:
+isoforms_ncbi_percent$Type <- as.factor("TriManLat1.0 annotation")
+isoforms_gge_percent$Type <- as.factor("LRB annotation")
+```
+
+```{r}
+#Crear el conjunto de datos final:
+data_isoforms <- rbind(isoforms_ncbi_percent, isoforms_gge_percent)
+```
+
+### 2.2.3.- Supported fusion vs no fusion:
+
+```{r}
+#Copias:
+gge_manatee_reduced <- gge_manatee
+```
+
+```{r}
+#SQANTI classification_reduced:
+gge_manatee_reduced <- gge_manatee_reduced[,c(1,4,5,6,7,8)]
+```
+
+```{r}
+#Hacer una columna con el gene ID:
+gge_manatee_reduced2 <- gge_manatee_reduced %>% separate(isoform, into=c("gene_id","transcript"))
+```
+
+```{r}
+#Archivo con los supported genes de las isoformas fusion y de las no fusion
+colnames(sup_fus_n_fus)<- c("gene_id","Type")
+```
+
+```{r}
+#Tabla:
+table(as.factor(sup_fus_n_fus$Type))
+```
+```{r}
+#Comprobar que no hay filas repetidas:
+sup_fus_n_fus_c <- dplyr::distinct(sup_fus_n_fus)
+```
+
+```{r}
+all.equal(sup_fus_n_fus_c,sup_fus_n_fus)
+```
+```{r}
+#Filtramos las líneas (no-fusion-gen-fusion) ya que están en los genes fusion:
+sup_fus_n_fus_f <- subset(sup_fus_n_fus, Type!="no-fusion-gen-fusion")
+```
+
+```{r}
+#Hacemos el conjunto de datos final:
+df_supported <- merge(sup_fus_n_fus_f,gge_manatee_reduced2, by = "gene_id")
+
+#Cambiar nombre de variables:
+df_supported$Type[df_supported$Type == "fusion"] <- "Fusion"
+df_supported$Type[df_supported$Type == "no-fusion"] <- "No-Fusion"
+
+#Convertir a factor variables:
+df_supported$Type <- as.factor(df_supported$Type)
+```
+
+```{r}
+#Estudiar medianas de todo el DF:
+tapply(df_supported$exons, df_supported$Type, median)
+tapply(df_supported$length, df_supported$Type, median)
+```
+```{r}
+#Estudiar datos de los tipos por sepatado:
+fusion <- subset(df_supported, Type=="Fusion")
+no_fusion <- subset(df_supported, Type=="No-Fusion")
+
+#Fusion:
+median(fusion$length)
+median(fusion$exons)
+
+#No fusion:
+median(no_fusion$length)
+median(no_fusion$exons)
+```
+
+## 2.2 BLAST hits
+
+```{r}
+supported <- read.table("supported.txt")
+non_supported <- read.table("non_supported.txt")
+hit_blast <- read.table("hit_blast.txt")
+novel <- gge_manatee[gge_manatee$structural_category %in% c("intergenic", "antisense"), "isoform"]
+novel <- data.frame("isoform" = novel)
+novel$blast <- ifelse(novel$isoform %in% hit_blast$V1, "TRUE", "FALSE")
+novel$supported <- ifelse(novel$isoform %in% supported$V1, "TRUE", "FALSE")
+```
+
+
+```{r}
+p_blast <- ggplot(novel, aes(blast, fill = supported)) +
+  geom_bar(linewidth= .25,  color = "black", width = 0.6) +
+  ylim(c(0,4000)) +
+  xlab("BLAST hit") +
+  ylab("Nº of novel transcripts") +
+  labs(fill="Experimental\nevidence support") +
+  theme_classic() +
+  mytheme + RColorConesa::scale_fill_conesa() 
+```
+
+
+## 2.3.- Gráficas
+
+### 2.3.1.- SQANTI classification
+
+```{r}
+#Colores de cada categoría estructural
+color_classification <- c("FSM"="#6BAED6", "ISM"="#FC8D59",
+                                        "NIC"="#78C679", "NNC"="#EE6A50", 
+                                        "Genic Genomic"="#969696", "Antisense"="#66C2A4","Fusion"="goldenrod1",
+                                        "Intergenic" = "darksalmon", "Genic\nIntron"="#41B6C4")
+```
+
+#### a) Number:
+
+```{r}
+class_ncbi_gge <- ggplot(sqanti_df, aes(fill=structural_category, y=n, x=type)) + 
+    geom_bar(position="stack", stat="identity", color= "black", width = 0.7,linewidth=0.25)+
+  scale_x_discrete(labels=c("LRB vs TriManLat1.0", "TriManLat1.0 vs LRB"))+labs(x = "", y = "Nº of isoforms", fill = "Structural Category")+
+  theme_classic()+theme(mytheme)+
+  theme(legend.position = "bottom")+
+  theme(axis.text.x = element_text(size=10))+
+  scale_fill_manual(values=color_classification)
+
+class_ncbi_gge 
+```
+
+```{r}
+#Guardamos el plot:
+ggsave("C:/Users/Usuario/Desktop/Manatee/Comparison_annotations_ncbi_gge_number.jpg", class_ncbi_gge, device = "jpeg", width=12.5, height=7,limitsize = FALSE, dpi=300)
+ggsave("C:/Users/Usuario/Desktop/Manatee/Comparison_annotations_ncbi_gge_number.pdf", class_ncbi_gge, device = "pdf", width=12.5, height=7,limitsize = FALSE, dpi=300)
+```
+
+#### b) Percentage:
+
+```{r}
+class_ncbi_gge_perc <- ggplot(sqanti_df_perc, aes(fill=structural_category, y=percent, x=type)) +
+  scale_x_discrete(labels=c("LRB  vs TriManLat1.0", "TriManLat1.0 vs LRB")) +
+    geom_bar(position="stack", stat="identity", color= "black", width = 0.7,linewidth=0.25)+labs(x = "", y = "Transcripts (%)", fill = "Structural Category")+
+  theme_classic()+
+  theme(mytheme)+
+  theme(legend.position = "bottom")+
+  scale_fill_manual(values=color_classification) + theme(legend.key.size = unit(.5,"line")) +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5))
+
+class_ncbi_gge_perc
+```
+
+```{r}
+#Guardamos el plot:
+ggsave("Comparison_annotations_ncbi_gge_percentage.jpg", class_ncbi_gge_perc, device = "jpeg", width=12.5, height=7,limitsize = FALSE, dpi=300)
+ggsave("Comparison_annotations_ncbi_gge_percentage.pdf", class_ncbi_gge_perc, device = "pdf", width=12.5, height=7,limitsize = FALSE, dpi=300)
+```
+
+
+
+### 2.3.2.- Isoformas por gen
+
+```{r}
+#Colores de cada categoría numérica
+color_isof_num <- c("1"="#6BAED6", "2-3"="#FC8D59","4-5"="#78C679", ">=6"="#EE6A50")
+```
+
+```{r}
+class_isoforms <- ggplot(data_isoforms, aes(fill=num_cat, x=Type, y=percent)) +geom_bar(position="stack", stat="identity", color= "black", width = 0.7, size=.25)+labs(x = "Annotation", y = "Genes (%)", fill = "Isoforms per gene")+theme_classic()+theme(mytheme)+theme(axis.text.x = element_text(size=10))+theme(legend.position = "bottom")+scale_fill_manual(values=color_isof_num) + theme(legend.key.size = unit(.5,"line")) + scale_x_discrete(labels=c("TriManLat1.0", "LRB"))
+
+class_isoforms
+```
+
+```{r}
+#Guardamos el plot:
+ggsave("Number_isoforms_per_gene.jpg", class_isoforms, device = "jpeg", width=12.5, height=7,limitsize = FALSE, dpi=300)
+ggsave("Number_isoforms_per_gene.pdf", class_isoforms, device = "pdf", width=12.5, height=7,limitsize = FALSE, dpi=300)
+```
+
+### 2.3.3.- Supported fusion vs no fusion
+
+
+
+```{r}
+#Exons supported fusion vs no fusion:
+p <- ggplot(df_supported, aes(x=Type, y=exons)) + 
+  scale_x_discrete(labels = c("Fusion","Non-fusion")) +
+  geom_boxplot(lwd=.25)+theme_classic()+labs(x = "", y = "Nº of exons")+theme_classic()+theme(mytheme)+theme(legend.position = "bottom")+ylim(0,25)
+
+p
+```
+
+```{r}
+#Guardamos el plot:
+ggsave("Number_exon_fusion_vs_no_fusion.jpg", p, device = "jpeg", width=12.5, height=7,limitsize = FALSE, dpi=300)
+ggsave("Number_exon_fusion_vs_no_fusion.pdf", p, device = "pdf", width=12.5, height=7,limitsize = FALSE, dpi=300)
+```
+
+```{r}
+#Length supported fusion vs no fusion:
+p2 <- ggplot(df_supported, aes(x=Type, y=length)) + 
+  scale_x_discrete(labels = c("Fusion","Non-fusion")) + 
+  geom_boxplot(lwd=.25)+theme_classic()+labs(x = "", y = "Transcript length")+theme_classic()+theme(mytheme)+theme(legend.position = "bottom")+ylim(0,1600)
+
+p2
+```
+
+```{r}
+#Guardamos el plot:
+ggsave("Length_fusion_vs_no_fusion.jpg", p2, device = "jpeg", width=12.5, height=7,limitsize = FALSE, dpi=300)
+ggsave("Length_fusion_vs_no_fusion.pdf", p2, device = "pdf", width=12.5, height=7,limitsize = FALSE, dpi=300)
+``` 
+
+
+
+
+
+
+
+
+```{r}
+class_isoforms <- class_isoforms  + guides(fill=guide_legend(nrow=2,byrow=TRUE, title = "Isoforms\nper gene"))
+
+p4 <- ggarrange(busco_manatee, class_isoforms, ncol= 2, labels = c("A", "B"), font.label = list(size=10, family= "Helvetica"))
+p4
+ggsave("fig4.jpg", p4, height = 3, width = 7)
+ggsave("fig4.pdf", p4, height = 3, width = 7)
+ggsave("fig4.svg", p4, height = 3, width = 7)
+```
+
+
+
+```{r}
+box <- ggarrange(p, p2, labels = c("D", "E"), font.label = list(size=10, family= "Helvetica"))
+c <- ggplot()
+c
+```
+
+```{r}
+final_supp <- ggarrange(ggarrange(class_ncbi_gge_perc, p_blast),ggarrange( c, box),heights = c(1,0.7), nrow=2)
+final_supp
+```
+```{r}
+ggsave("final_supp.jpg", final_supp, width = 7.5, height = 5)
+ggsave("final_supp.svg", final_supp, width = 7.5, height = 5)
+
+```
+

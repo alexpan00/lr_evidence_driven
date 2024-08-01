@@ -1,0 +1,9 @@
+antisense	125632
+full-splice_match	55518
+fusion	25924
+genic	29437
+genic_intron	18462
+incomplete-splice_match	209646
+intergenic	56188
+novel_in_catalog	226108
+novel_not_in_catalog	1704516
