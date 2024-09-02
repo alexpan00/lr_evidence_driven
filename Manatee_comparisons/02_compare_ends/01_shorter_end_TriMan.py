@@ -5,18 +5,18 @@ compared to the LRB annotation (FSM alternative 3' 5' or both)
 '''
 
 import pandas
-import argparser
+import argparse
 
 
-def parse_arguments()-> argparser:
+def parse_arguments()-> argparse:
     '''Create a parser object
     
     Returns: parser object
     '''
     
-    parser = argparser.ArgumentParser(description='Select transcripts with shorter ends')
+    parser = argparse.ArgumentParser(description='Select transcripts with shorter ends')
     parser.add_argument('-s', '--sqanti', help='SQANTI3 classification file')
-    parser.output('-o', '--output', help='Output file')
+    parser.add_argument('-o', '--output', help='Output file')
     
     args = parser.parse_args()
     
@@ -26,7 +26,7 @@ def main():
     
     # Read the SQANTI3 classification file
     args = parse_arguments()
-    classification = pandas.read_csv(args.sqanti, sep='\t')
+    classification = pandas.read_csv(args.sqanti, sep='\t', low_memory=False)
     
     # Select transcript in which structural_category column is full-splice_match
     # or incomplete-splice_match and the end is shorter than the LRB annotation
@@ -35,12 +35,18 @@ def main():
     
     # Keep all the ISM and for FSM, select those with alternative 3' or 5' end, i.e. subcategory 
     # column starts with 'alternative' and shorter ends
-    shorter_ends = shorter_ends[((shorter_ends['structural_category'] == 'full-splice_match') & 
-                                (shorter_ends['subcategory'].str.startswith('alternative')) &
-                                ((shorter_ends['diff_to_TSS'] > 0 | 
-                                 shorter_ends['diff_to_TTS'] > 0))) |
-                                (shorter_ends['structural_category'] == 'incomplete-splice_match')]
+    shorter_ends = shorter_ends[
+        ((shorter_ends['structural_category'] == 'full-splice_match') & 
+        (shorter_ends['subcategory'].str.startswith('alternative')) & 
+        ((shorter_ends['diff_to_TSS'] > 0) | 
+        (shorter_ends['diff_to_TTS'] > 0))) |
+        (shorter_ends['structural_category'] == 'incomplete-splice_match')
+    ]
+
     
     # write the selected transcripts to a file, only the transcript ID (isoform)
     # and the reference transcript ID (associated_transcript)
     shorter_ends[['isoform', 'associated_transcript']].to_csv(args.output, sep='\t', index=False)
+    
+if __name__=="__main__":
+    main()

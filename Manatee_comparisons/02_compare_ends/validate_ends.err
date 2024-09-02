@@ -1,0 +1,4 @@
+[W::fai_get_val] Reference g9563.t4 not found in FASTA file, returning empty sequence
+[faidx] Failed to fetch sequence in g9563.t4
+Warning: [blastp] Examining 5 or more matches is recommended
+Warning: [blastp] Query_3 g9563.t4: Sequence contains no data 

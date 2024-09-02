@@ -4,12 +4,12 @@
 #SBATCH --error=validate_ends.err
 #SBATCH --time=1:00:00
 #SBATCH --mem=16G
-#SBATCH --cpus=8
+#SBATCH --cpus-per-task=8
 #SBATCH --qos=short
 
 module load blast
 module load samtools
-
+source activate SQANTI3.env
 
 # Parse input arguments
 while [[ $# -gt 0 ]]; do
@@ -43,11 +43,11 @@ echo "blast_db: $blast_db"
 
 mkdir -p outputs_$SLURM_JOB_ID
 
-python 01_shoter_ends_TriMan.py -s $sqanti_class -o outputs_$SLURM_JOB_ID/shorter_ends.tsv
+python 01_shorter_end_TriMan.py -s $sqanti_class -o outputs_$SLURM_JOB_ID/shorter_ends.tsv
 
 # extract the protein sequences of LRB trasncripts that extend TriMan 
 # trasncripts ends
-samtools faidx $protein_fasta -r <(cut -f2 outputs_$SLURM_JOB_ID/shorter_ends.tsv) > outputs_$SLURM_JOB_ID/full_sequences.fasta
+samtools faidx $protein_fasta -r <(cut -f2 outputs_$SLURM_JOB_ID/shorter_ends.tsv | tail -n +2) > outputs_$SLURM_JOB_ID/full_sequences.fasta
 
 # run blastp
 blastp -query outputs_$SLURM_JOB_ID/full_sequences.fasta -db $blast_db \
