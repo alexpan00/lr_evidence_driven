@@ -1,0 +1,10 @@
+gtf_input=$1
+gtf_reference=$2
+genome=$3
+out_dir=$4
+out_name=$5
+SJ=$6
+
+sbatch sqanti3_qc_SRj.sbatch /home/crisag/manatee_reference/sqanti3/sqanti3_gge_new_busco_sqanti_ncbi_prot_filtered/gtfs_finales/gtf_ncbi_protein_coding_isoforms.gtf /home/crisag/manatee_reference/sqanti3/sqanti3_gge_new_busco_sqanti_ncbi_prot_filtered/gtfs_finales/manatee_gge_busco_sqanti_isoforms_no_src_filtered_CDS.gtf /storage/gge/Alejandro/reference_manatee/manatee_genome_sm.fasta /home/crisag/manatee_reference/sqanti3/sqanti3_gge_new_busco_sqanti_ncbi_prot_filtered/sqanti_ncbi_input/output_sqanti/ manatee_ncbi_prot /storage/gge/Alejandro/Manatee_data/Illumina/trimmed/SJ
+
+
