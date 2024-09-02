@@ -1,0 +1,202 @@
+---
+title: "fig sup3"
+author: "Alejandro Paniagua"
+output: html_document
+---
+
+Script to generate plots and test the results of the different AUGUSTUS models
+The F1 score is calculated at nt, exon and gene level. The number of perfect
+protein hits and the median identity is compared at protein level.
+ 
+ 
+## Load libraries
+
+```{r}
+library(ggplot2)
+library(RColorConesa)
+library(reshape2)
+library(gtools)
+library(readr)
+library(viridis)
+library(tidyverse)
+library(gridExtra)
+```
+
+## Create theme
+
+```{r}
+mytheme <- theme(plot.title = element_text(size = 10, face = "bold",hjust = 0.5), 
+                 plot.subtitle = element_text(size = 10,hjust = 0.5), 
+                 legend.text = element_text(size=8),
+                 legend.title = element_text(size=9),
+                 axis.title.x = element_text(size=10, margin = margin(t = 1, r = 0, b = 0, l = 0)), 
+                 axis.title.y = element_text(size=10,  margin = margin(t = 0, r = 1, b = 0, l = 0)), 
+                 axis.text.x = element_text(size=8), 
+                 axis.text.y = element_text(size=8), 
+                 legend.key.size = unit(1,"line")) +
+  theme(strip.text = element_text(size = 10)) + 
+  theme(plot.margin = unit(c(0.15,0.15,.15,.15), "cm"),
+        text = element_text(family = "Helvetica"),  # Set font to Helvetica
+        legend.spacing.x = unit(0.1, 'cm'),         # Adjust horizontal spacing
+        legend.spacing.y = unit(0.1, 'cm'),         # Adjust vertical spacing
+        legend.margin = margin(0, 0, 0, 0)) 
+```
+
+## Create functions
+
+```{r}
+# harmonic mean -> the harmonic mean of the Sn and de Pr is F-score
+harmonic_mean <- function(sn, precision){
+  (2*(sn*precision)/(sn+precision))/100
+}
+
+generate_heatmap_gg <- function(summary_df,level){
+  n_genes <- "N_genes"
+  fr <- "fr"
+  if (level == "nt"){
+    tmp <- summary_df[,c(n_genes,fr,"mean_nt_fscore", "tec")]
+  }
+  if (level == "exon"){
+    tmp <- summary_df[,c(n_genes,fr,"mean_exon_fscore", "tec")]
+  }
+  if (level == "gene"){
+    tmp <- summary_df[,c(n_genes,fr,"mean_gene_fscore", "tec")]
+  }
+  if (level == "protein_identity"){
+    tmp <- summary_df[,c(n_genes,fr,"mean_median_identity", "tec")]
+  }
+  if (level == "protein_PH"){
+    tmp <- summary_df[,c(n_genes,fr,"mean_PH", "tec")]
+  }
+  names(tmp) <- c("N_genes", "fr", "fscore", "tec")
+  tmp$fr <- factor(tmp$fr, 
+                   levels = unique(mixedsort(tmp$fr)))
+  legend_title <- "F1-score"
+  if (grepl("protein", level)){
+    legend_title <- "Perfect\nhits"
+    if (grepl("identity", level)){
+      legend_title <- "Median identity %"
+    }
+    level <- "Protein"
+  }
+  level <- str_to_title(level)
+  tmp$tec <- factor(tmp$tec, levels = c("PacBio","ONT",  "MIX", "BUSCO"))
+  p <- ggplot(tmp, aes(as.factor(N_genes), fr, fill= fscore)) + 
+    geom_tile() +
+    scale_fill_viridis(discrete=FALSE) +
+    xlab("Genes in the training set") +
+    ylab("Length of the flanking region") +
+    ggtitle(paste(level, "level")) + 
+    labs(fill=legend_title)  +
+    facet_grid(tec~., scales="free_y") +
+    theme(axis.text.y = element_blank()) + theme_classic() +
+    mytheme + theme(axis.text.x = element_text(angle = 45,hjust = 1))
+  p
+}
+
+generate_jitter_gg <- function(summary_df,level){
+  n_genes <- "N_genes"
+  fr <- "fr"
+  if (level == "nt"){
+    tmp <- summary_df[,c(n_genes,fr,"mean_nt_fscore", "mean_nt_sn", "mean_nt_pr","tec")]
+    tmp <- melt(tmp, c(1,2,6))
+  }
+  if (level == "exon"){
+    tmp <- summary_df[,c(n_genes,fr,"mean_exon_fscore","mean_exon_sn","mean_exon_pr", "tec")]
+    tmp <- melt(tmp, c(1,2,6))
+  }
+  if (level == "gene"){
+    tmp <- summary_df[,c(n_genes,fr,"mean_gene_fscore","mean_gene_sn","mean_gene_pr", "tec")]
+    tmp <- melt(tmp, c(1,2,6))
+  }
+  if (level == "protein_identity"){
+    tmp <- summary_df[,c(n_genes,fr,"mean_median_identity", "tec")]
+    tmp <- melt(tmp, c(1,2,6))
+  }
+  if (level == "protein_PH"){
+    tmp <- summary_df[,c(n_genes,fr,"mean_PH", "tec")]
+  }
+  names(tmp) <- c("N_genes", "fr", "tec", "variable", "value")
+  tmp$fr <- factor(tmp$fr, 
+                   levels = unique(mixedsort(tmp$fr)))
+  legend_title <- "Metrics"
+  if (grepl("protein", level)){
+    legend_title <- "Perfect hits"
+    if (grepl("identity", level)){
+      legend_title <- "Median identity %"
+    }
+    level <- "Protein"
+  }
+  level <- str_to_title(level)
+  p <- ggplot(tmp, aes(value, tec, color= variable)) + 
+    geom_point() +
+    ggtitle(paste(level, "level")) + 
+    labs(fill=legend_title) +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    theme_classic() 
+  p
+}
+```
+
+
+## Load data
+
+```{r}
+results <- list.files(pattern = ".tsv")
+# Create a list to store the summary dataframes
+results_df <- list()
+```
+
+## Create plots
+
+```{r}
+i <- 1
+# Read the results
+for (result in results){
+  print(result)
+  # Load the summary table as a dataframe into a list
+  results_df[[i]] <- read.delim(result)
+  i = i + 1
+}
+
+df <- do.call(rbind, results_df)
+df$nt_fscore <- harmonic_mean(df$nt_sn, df$nt_sp)
+df$exon_fscore <- harmonic_mean(df$exon_sn, df$exon_sp)
+df$gene_fscore <- harmonic_mean(df$gene_sn, df$gene_sp)
+df$fr <- factor(df$fr,
+                levels = unique(mixedsort(df$fr)))
+summary_df <- df %>% 
+  group_by(N_genes, fr,tec) %>% 
+  summarise(mean_nt_fscore = mean(nt_fscore),
+            sd_nt_fscore = sd(nt_fscore),
+            mean_exon_fscore = mean(exon_fscore),
+            sd_exon_fscore = sd(exon_fscore),
+            mean_gene_fscore = mean(gene_fscore),
+            sd_gene_fscore = sd(gene_fscore),
+            mean_median_identity = mean(median_identity),
+            sd_median_identity = sd(median_identity),
+            mean_PH = mean(PH),
+            sd_PH = sd(PH),
+            mean_nt_sn = mean(nt_sn),
+            mean_exon_sn = mean(exon_sn),
+            mean_gene_sn = mean(gene_sn),
+            mean_nt_pr = mean(nt_sp),
+            mean_exon_pr = mean(exon_sp),
+            mean_gene_pr = mean(gene_sp))
+
+summary_df <- summary_df %>% filter(N_genes <= 5000)
+l_plots <- list()
+i <- 1
+for (level in c("nt", "exon", "gene", "protein_PH", "protein_identity")){
+  l_plots[[i]] <- generate_heatmap_gg(summary_df, level)
+  ggsave(paste0(level, "_", "gg_heatmap.png"))
+  i <- i + 1
+}
+
+
+p <- grid.arrange(l_plots[[1]], l_plots[[2]], l_plots[[3]], l_plots[[4]])
+ggsave(file="all_heatmap.jpeg", p, height = 6.5, width = 6.5)
+ggsave(file="all_heatmap.svg", p, height = 6.5, width = 6.5)
+```
+
+

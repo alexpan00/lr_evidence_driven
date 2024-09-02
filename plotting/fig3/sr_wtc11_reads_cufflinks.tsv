@@ -1,0 +1,2 @@
+N_genes	nt_sn	nt_sp	exon_sn	exon_sp	gene_sn	gene_sp	mean_identity	median_identity	PH	FP	FN	SC	DU
+comparison	89.9	83.9	82.3	73.9	31.6	26.1	82.87462627545133	94.04462801527782	449	439	192	0.9658385093167702	0.1111111111111111

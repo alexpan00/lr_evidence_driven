@@ -1,0 +1,107 @@
+---
+title: "sup1"
+author: "Alejandro Paniagua"
+output: html_document
+---
+
+## Load packages
+
+```{r}
+library(ggpubr)
+library(ggplot2)
+library(dplyr)
+```
+
+## theme and colors
+
+```{r}
+xaxislevelsF1 <- c("full-splice_match","incomplete-splice_match","novel_in_catalog","novel_not_in_catalog", "genic","antisense","fusion","intergenic","genic_intron");
+xaxislabelsF1 <- c("FSM", "ISM", "NIC", "NNC", "Genic_Genomic",  "Antisense", "Fusion","Intergenic", "Genic_Intron")
+
+cat.palette = c("FSM"="#6BAED6", "ISM"="#FC8D59", "NIC"="#78C679", 
+                "NNC"="#EE6A50", "Genic_Genomic"="#969696", "Antisense"="#66C2A4", "Fusion"="goldenrod1",
+                "Intergenic" = "darksalmon", "Genic_Intron"="#41B6C4", "Others"= "#969696")
+
+mytheme <- theme(plot.title = element_text(size = 10, face = "bold",hjust = 0.5), 
+                 plot.subtitle = element_text(size = 10,hjust = 0.5), 
+                 legend.text = element_text(size=8),
+                 legend.title = element_text(size=9),
+                 axis.title.x = element_text(size=10, margin = margin(t = 1, r = 0, b = 0, l = 0)), 
+                 axis.title.y = element_text(size=10,  margin = margin(t = 0, r = 1, b = 0, l = 0)), 
+                 axis.text.x = element_text(size=8), 
+                 axis.text.y = element_text(size=8), 
+                 legend.key.size = unit(1,"line")) +
+          theme(strip.text = element_text(size = 10)) + 
+  theme(plot.margin = unit(c(0.15,0.15,.15,.15), "cm"),
+        text = element_text(family = "Helvetica"),  # Set font to Helvetica
+  legend.spacing.x = unit(0.1, 'cm'),         # Adjust horizontal spacing
+  legend.spacing.y = unit(0.1, 'cm'),         # Adjust vertical spacing
+  legend.margin = margin(0, 0, 0, 0)) 
+```
+
+## Load classification files
+
+```{r}
+classification_isoseq_pre <- read.delim("isoseq/WTC11_isoseq_classification.txt")
+classification_mix_pre <- read.delim("FLAIR_MIX/WTC11_MIX_classification.txt")
+classification_ont_pre <- read.delim("FLAIR_ONT/WTC11_flair_ONT_classification.txt")
+```
+
+## Get the proportion of monoexons and multiexons between known and novel genes
+
+```{r}
+f_in <- list(classification_isoseq_pre, classification_ont_pre, classification_mix_pre)
+exonstructure <- c()
+for (i in 1:3){
+  print(i)
+  #data <- f_in[[i]]
+  data.class <- f_in[[i]]
+  data.class <- data.class[grep("SIRV|ERCC",data.class$chrom, invert=T),] # Remove the transcripts associated to the spike
+  data.class$novelGene <- "Annotated Genes"
+  data.class[grep("novelGene", data.class$associated_gene), "novelGene"] <- "Novel Genes"
+  data.class$novelGene = factor(data.class$novelGene,
+                                levels = c("Novel Genes","Annotated Genes"),
+                                ordered=TRUE)
+  
+  data.class[which(data.class$exons>1), "exonCat"] <- "Multi-Exon"
+  data.class[which(data.class$exons==1), "exonCat"] <- "Mono-Exon"
+  data.class$exonCat = factor(data.class$exonCat,
+                              levels = c("Multi-Exon","Mono-Exon"),
+                              ordered=TRUE)
+  
+  exonstructure <- c(
+    exonstructure,
+    sum(data.class$novelGene == "Novel Genes" & data.class$exonCat == "Mono-Exon"),
+    sum(data.class$novelGene == "Novel Genes" & data.class$exonCat == "Multi-Exon"),
+    sum(data.class$novelGene == "Annotated Genes" & data.class$exonCat == "Mono-Exon"),
+    sum(data.class$novelGene == "Annotated Genes" & data.class$exonCat == "Multi-Exon")
+    
+  )
+  
+}
+sample <-rep( c("PacBio", "ONT", "MIX"), each=4)
+number <- rep(c("1","2-3","4-5", ">=6"), times=3)
+
+category <- rep(c("Novel-Monoexon ", "Novel-Multiexon", "Annotated-Monoexon", "Annotated-Multiexon"), times=3)
+exonstructure <- data.frame(sample, category, exonstructure)
+exonstructure$category <- factor(exonstructure$category, levels =c("Novel-Monoexon ", "Annotated-Monoexon", "Novel-Multiexon", "Annotated-Multiexon"))
+exonstructure$sample <- factor(exonstructure$sample, levels = c("PacBio", "ONT", "MIX"))
+
+```
+
+```{r}
+p3 <- ggplot(exonstructure, aes(fill=category, y=exonstructure, x=sample)) +
+  geom_bar(position = "fill", stat = "identity",color="black",size = 0.25) +
+  scale_fill_manual(values=c("#6BAED6","#FC8D59","#78C679","#EE6A50","#EE6A50")) +
+  guides(fill=guide_legend(title="Category",nrow=2,byrow=TRUE,title.position="top",title.hjust = 0.5)) +
+  labs(x="Transcritome", y="Transcripts %") +
+  scale_y_continuous(labels = scales::percent) +
+  theme_classic() + mytheme + theme(legend.position = "top")
+p3
+```
+
+```{r}
+ggsave("supp2.jpeg", plot= p3, width = 4, height = 4)
+ggsave("supp2.svg", plot= p3, width = 4, height = 4)
+```
+

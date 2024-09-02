@@ -1,0 +1,101 @@
+---
+title: "sup 7"
+author: "Alejandro Paniagua"
+output: html_document
+---
+
+
+## lod packages and theme
+
+```{r}
+library(ggplot2)
+xaxislevelsF1 <- c("full-splice_match","incomplete-splice_match","novel_in_catalog","novel_not_in_catalog", "genic","antisense","fusion","intergenic","genic_intron");
+xaxislabelsF1 <- c("FSM", "ISM", "NIC", "NNC", "Genic_Genomic",  "Antisense", "Fusion","Intergenic", "Genic_Intron")
+
+cat.palette = c("FSM"="#6BAED6", "ISM"="#FC8D59", "NIC"="#78C679", 
+                "NNC"="#EE6A50", "Genic_Genomic"="#969696", "Antisense"="#66C2A4", "Fusion"="goldenrod1",
+                "Intergenic" = "darksalmon", "Genic_Intron"="#41B6C4", "Others"= "#969696")
+
+mytheme <- theme(plot.title = element_text(size = 10, face = "bold",hjust = -0.07), 
+                 plot.subtitle = element_text(size = 10,hjust = 0.5), 
+                 legend.text = element_text(size=8),
+                 legend.title = element_text(size=9),
+                 axis.title.x = element_text(size=10, margin = margin(t = 1, r = 0, b = 0, l = 0)), 
+                 axis.title.y = element_text(size=10,  margin = margin(t = 0, r = 1, b = 0, l = 0)), 
+                 axis.text.x = element_text(size=8), 
+                 axis.text.y = element_text(size=8), 
+                 legend.key.size = unit(1,"line")) +
+          theme(strip.text = element_text(size = 10)) + 
+  theme(plot.margin = unit(c(0.15,0.15,.15,.15), "cm"),
+        text = element_text(family = "Helvetica"),  # Set font to Helvetica
+  legend.spacing.x = unit(0.1, 'cm'),         # Adjust horizontal spacing
+  legend.spacing.y = unit(0.1, 'cm'),         # Adjust vertical spacing
+  legend.margin = margin(0, 0, 0, 0)) 
+```
+
+## load data
+
+```{r}
+len_files <- list.files("read_length", pattern = "*.csv", full.names = T)
+l_files <- list()
+i <- 1
+for (file in len_files){
+  tmp <- read.csv(file)
+  sample <- "WTC11"
+  if (grepl("manatee", file)){
+    sample <- "Florida Manatee"
+  }
+  tmp$sample <- sample
+  l_files[[i]] <- tmp
+  i <- 1 + i
+}
+
+final_df <- do.call(rbind, l_files)
+
+
+```
+
+
+## plot read length
+
+```{r}
+p_len <- ggplot(final_df, aes(sample, log10(insertlen))) +
+  geom_boxplot(outlier.size = 0.25, linewidth=0.15) + 
+  ylab("log10(FLNC reads length)") +
+  xlab("Sample") +
+  ylim(c(1,5.5)) +
+  theme_classic() + mytheme
+```
+
+
+## Load classification file trimanlat vs LRB and cds length of LRB
+
+```{r}
+cl <- read.delim("manatee_ncbi_prot_classification.txt")
+lrb <- read.delim("LRB_cds_length.txt")
+lrb$cat <- "LRB"
+lrb <- lrb[,c("length", "cat")]
+
+```
+
+```{r}
+cl$cat <- ifelse(cl$structural_category == "fusion", "TriManLat 1.0\nfusion", "TriManLat.1.0\nnon-fusion")
+cl <- cl[,c("length", "cat")]
+
+final <- rbind(cl, lrb)
+p_cds <- ggplot(final, aes(cat, log10(length))) +
+  geom_boxplot(outlier.size = 0.25, linewidth=0.15) +
+  ylim(c(1,5.5)) +
+  xlab("Transcriptome") +
+  ylab("log10(CDS length)") +
+  theme_classic() +
+  mytheme
+p_cds
+```
+
+```{r}
+a <- ggarrange(p_len, p_cds, labels = c("A", "B"), font.label = list(size = 10))
+ggsave(plot = a,filename = "lengths_plot.jpeg", height = 2.5, width = 5.5)
+ggsave(plot= a,filename = "lengths_plot.pdf", height = 2.5, width = 5.5)
+
+```

@@ -1,0 +1,180 @@
+---
+title: "fig sup4"
+author: "Alejandro Paniagua"
+output: html_document
+---
+
+## Load packages and theme
+
+```{r setup}
+library(ggplot2)
+library(dplyr)
+library(RColorConesa)
+library(ggpubr)
+library(ggVennDiagram)
+mytheme <- theme(plot.title = element_text(size = 10, face = "bold",hjust = 0.5), 
+                 plot.subtitle = element_text(size = 10,hjust = 0.5), 
+                 legend.text = element_text(size=10),
+                 legend.title = element_text(size=10),
+                 axis.title.x = element_text(size=10, margin = margin(t = 1, r = 0, b = 0, l = 0)), 
+                 axis.title.y = element_text(size=10,  margin = margin(t = 0, r = 1, b = 0, l = 0)), 
+                 axis.text.x = element_text(size=10), 
+                 axis.text.y = element_text(size=9), 
+                 legend.key.size = unit(1,"line")) +
+          theme(strip.text = element_text(size = 10)) + 
+  theme(plot.margin = unit(c(0.15,0.15,.15,.15), "cm"),
+        text = element_text(family = "Helvetica"),  # Set font to Helvetica
+  legend.spacing.x = unit(0.1, 'cm'),         # Adjust horizontal spacing
+  legend.spacing.y = unit(0.1, 'cm'),         # Adjust vertical spacing
+  legend.margin = margin(0, 0, 0, 0)) 
+```
+
+
+## Load files
+
+ List dirs and load the files in their coprresponding list
+```{r}
+l_files <- list()
+l_FP <- list()
+l_FN <- list()
+l_PH <- list()
+l_all <- list()
+dirs <- list.dirs(full.names = F, recursive = F)
+i <- 1
+for (directory in dirs){
+  files <- list.files(directory)
+  # load the classification files
+  for (classification in files){
+    tmp <- read.delim(paste0(directory, "/", classification))
+    genes <- unlist(strsplit(classification, "_"))[1]
+    if (genes == "subset"){
+      genes <- "all"
+    }
+    tec <- directory
+    tmp$genes <- genes
+    tmp$tec <- directory
+    l_files[[i]] <- tmp
+    # save the UJC of the genes in the corresponding list
+    if (genes == "PH"){
+      l_PH[[tec]] <- tmp$LRGASP_id
+    }
+    if (genes == "FP"){
+      l_FP[[tec]] <- tmp$LRGASP_id
+    }
+    if (genes == "FN"){
+      l_FN[[tec]] <- tmp$LRGASP_id
+    }
+
+    i <- i + 1
+  }
+}
+```
+
+
+Load the reference classification file
+```{r}
+tmp <- read.delim("chr19_ref_classification.txt")
+tmp$genes <- "all"
+tmp$tec <- "ref"
+
+l_files[[i]] <- tmp
+```
+
+
+Create a data.frame with all the classification files
+```{r}
+global_class <- do.call(rbind, l_files)
+```
+
+
+## Create plots
+
+Number of exons
+```{r}
+RColorConesa::colorConesa(8)
+global_class$ref <- ifelse(global_class$tec == "ref", "Reference", "Predictions")
+global_class$tec <- ifelse(global_class$tec == "ref", "Reference", global_class$tec )
+global_class$tec <- ifelse(global_class$tec == "PB", "PacBio", global_class$tec )
+global_class$tec <- factor(global_class$tec, levels = c("PacBio", "ONT", "MIX", "BUSCO", "Reference"))
+global_class$genes <- factor(global_class$genes, levels = c("all", "FP", "PH", "FN"))
+p1 <- ggplot(global_class, aes(x = tec, y = exons, fill = genes)) +
+  geom_boxplot(outlier.shape = NA, linewidth=0.15) + ylim(c(0,18)) + 
+  xlab("") +
+  ylab("Nº of exons") +
+  guides(fill=guide_legend(title="Genes")) +
+  facet_grid(.~ref, scales="free_x",space='free_x') +
+  theme_classic() + scale_fill_manual(labels = c("ALL", "FG", "TP", "FN"),values=c("#15918A", "#F58A53", "#FDA3D1","#EE446F")) +   
+  mytheme +
+  theme(legend.position="none")
+
+p1
+```
+
+Mean exon length
+```{r}
+p2 <- ggplot(global_class, aes(x = tec, y = (length/exons), fill = genes)) +
+  geom_boxplot(outlier.shape = NA, linewidth=0.15)  + xlab("") +
+  ylab("Mean exon length") +
+  guides(fill=guide_legend(title="Genes")) +
+  facet_grid(.~ref, scales="free_x",space='free_x') +
+  theme_classic() + scale_fill_manual(labels = c("All", "FG", "TP", "MG"),values=c("#15918A", "#F58A53", "#FDA3D1","#EE446F")) +   
+  mytheme +
+  ylim(c(0,1250)) #+ theme(legend.position = "inside",legend.position.inside =c(0.95, 0.85))
+p2
+
+p <- ggarrange(p1, p2, nrow=1, common.legend = TRUE, legend = "bottom", labels = c("D", "E"),font.label = list(size = 10))
+```
+
+```{r}
+color <- RColorConesa::colorConesa(4)
+l <- list()
+names(l_FP) <- c("BUSCO", "MIX", "ONT", "PacBio")
+FP_venn <- ggVennDiagram::ggVennDiagram(l_FP, 
+                                  set_color = c(alpha(color[1],0.5), alpha(color[2],0.5), alpha(color[3],0.5),alpha(color[4],0.5)),
+                                  label_alpha =0, label = "count", order.intersect.by="none", order.set.by = "none", label_size = 3) +
+  theme(legend.position = "none") +
+  scale_fill_gradient(low = "white", high = "white") + mytheme + theme(  axis.title.x = element_blank(),             # Remove x-axis title
+  axis.title.y = element_blank(),             # Remove y-axis title
+  axis.text.x = element_blank(),              # Remove x-axis ticks
+  axis.text.y = element_blank(),              # Remove y-axis ticks
+  axis.ticks.x = element_blank(),             # Remove x-axis tick marks
+  axis.ticks.y = element_blank()              # Remove y-axis tick marks
+  )
+FP_venn
+names(l_FN) <- c("BUSCO", "MIX", "ONT", "PacBio")
+FN_venn <- ggVennDiagram::ggVennDiagram(l_FN, 
+                                  set_color = c(alpha(color[1],0.5), alpha(color[2],0.5), alpha(color[3],0.5),alpha(color[4],0.5)),
+                                  label_alpha =0, label = "count", order.intersect.by="none", order.set.by = "none", label_size = 3) +
+  theme(legend.position = "none") +
+  scale_fill_gradient(low = "white", high = "white") + mytheme + theme(  axis.title.x = element_blank(),             # Remove x-axis title
+  axis.title.y = element_blank(),             # Remove y-axis title
+  axis.text.x = element_blank(),              # Remove x-axis ticks
+  axis.text.y = element_blank(),              # Remove y-axis ticks
+  axis.ticks.x = element_blank(),             # Remove x-axis tick marks
+  axis.ticks.y = element_blank()              # Remove y-axis tick marks
+  )
+FN_venn
+
+names(l_PH) <- c("BUSCO", "MIX", "ONT", "PacBio")
+PH_venn <- ggVennDiagram::ggVennDiagram(l_PH, 
+                                  set_color = c(alpha(color[1],0.5), alpha(color[2],0.5), alpha(color[3],0.5),alpha(color[4],0.5)),
+                                  label_alpha =0, label = "count", order.intersect.by="none", order.set.by = "none", label_size = 3) +
+  theme(legend.position = "none") +
+  scale_fill_gradient(low = "white", high = "white") + mytheme +theme(  axis.title.x = element_blank(),             # Remove x-axis title
+  axis.title.y = element_blank(),             # Remove y-axis title
+  axis.text.x = element_blank(),              # Remove x-axis ticks
+  axis.text.y = element_blank(),              # Remove y-axis ticks
+  axis.ticks.x = element_blank(),             # Remove x-axis tick marks
+  axis.ticks.y = element_blank()              # Remove y-axis tick marks
+  )
+
+PH_venn
+```
+
+
+```{r}
+p_final_supp <- ggarrange(ggarrange(PH_venn, FN_venn, FP_venn, nrow = 1, labels = c("A","B", "C"), font.label = list(size = 10, color = "black", face = "bold", family = "Helvetica")), p, nrow = 2 , heights = c(1, 1))
+
+ggsave("supp5complete.jpg", p_final_supp, height = 5.625, width = 7.5)
+ggsave("supp5complete.svg", p_final_supp, height = 5.625, width = 7.5)
+```
