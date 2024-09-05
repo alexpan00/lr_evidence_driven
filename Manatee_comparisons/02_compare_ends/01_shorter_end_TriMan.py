@@ -40,7 +40,8 @@ def main():
         (shorter_ends['subcategory'].str.startswith('alternative')) & 
         ((shorter_ends['diff_to_TSS'] > 0) | 
         (shorter_ends['diff_to_TTS'] > 0))) |
-        (shorter_ends['structural_category'] == 'incomplete-splice_match')
+        ((shorter_ends['structural_category'] == 'incomplete-splice_match') &
+        ((shorter_ends["ref_length"] - shorter_ends["length"]) > 50))
     ]
 
     

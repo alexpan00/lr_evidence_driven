@@ -11,6 +11,7 @@ module load blast
 module load samtools
 source activate SQANTI3.env
 
+
 # Parse input arguments
 while [[ $# -gt 0 ]]; do
     key="$1"
@@ -56,4 +57,9 @@ blastp -query outputs_$SLURM_JOB_ID/full_sequences.fasta -db $blast_db \
     -num_alignments 1 -num_threads 8 -out outputs_$SLURM_JOB_ID/blastp_results.tsv
 
 
+# Remove the redundant aligments and get the difference between ends and lengths
+sort outputs_$SLURM_JOB_ID/blastp_results.tsv | uniq | awk -F'\t' OFS='\t' '{print $1, ($7 - $9), ($8 - $10), ($13 - $14)}' > outputs_$SLURM_JOB_ID/diff_ends.tsv  
 
+module load R/4.2.1
+
+Rscript 03_check_dist_ends.R outputs_$SLURM_JOB_ID/diff_ends.tsv
