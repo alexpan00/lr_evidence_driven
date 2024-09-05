@@ -1,0 +1,4 @@
+These are the main outputs of the manatee worflow. 
+- manatee_gge_final_hints_file.gff.gz hints used for evidence-driven prediction
+- manatee_gge_busco_sqanti_isoforms.gtf.gz AUGUSTUS output using hints
+- manatee_gge_busco_sqanti_isoforms.aa.gz proteins corrsponding to the predicted CDS
