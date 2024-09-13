@@ -52,4 +52,5 @@ Some scripts have two versions:
 - **Normal Version:** Designed for annotating new species.
 
 
-
+### Manatee results
+The final Floria manatee annotation, as well as the experimental evidence used to run AUGUTUS, can be foun in [Manatee annotation](https://github.com/alexpan00/lr_evidence_driven/tree/3467d6a84e9dee9dfa2d3e35374b6dda6d47cfe5/Manatee_annotaion)
