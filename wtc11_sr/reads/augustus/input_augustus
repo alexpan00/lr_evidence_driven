@@ -1,0 +1,1 @@
+sbatch predict_with_hints.sbatch subset_5000_WTC11_BUSCO_fr1000 extrinsic.M.RM.E.W.cfg /storage/gge/Alejandro/WTC11/chr19.fa /home/crisag/muestras_wtc11_sr/protocol1_sr_no_filtering/augustus/introns_wtc11_hints.gff /home/crisag/muestras_wtc11_sr/protocol1_sr_no_filtering/output_augustus

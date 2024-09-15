@@ -1,0 +1,1 @@
+sbatch subsampling.sbatch /home/crisag/WTC11_lr/saturation_curve/subsampling/flnc.bam /home/crisag/WTC11_lr/saturation_curve/subsampling/fracciones.txt wtc11_lr_subsampling

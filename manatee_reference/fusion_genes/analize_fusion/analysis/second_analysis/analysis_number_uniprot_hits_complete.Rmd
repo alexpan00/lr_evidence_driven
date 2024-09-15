@@ -1,0 +1,64 @@
+---
+title: "Analyse Uniprot hits' of fusions' lrb associated genes"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Libraries:
+library(ggplot2)
+library(RColorConesa)
+library(reshape2)
+library(gtools)
+library(readr)
+library(viridis)
+library(readxl)
+library(tidyverse)
+library(fmsb)
+library(ggpubr)
+library(ggbreak)
+```
+
+# 1.- Reading files:
+
+```{r}
+uniprot_hits_single <- read.delim("single_hit_uniprot_supported_gge_genes_filtered.tsv", header = FALSE)
+uniprot_hits_multiple <- read.delim("gge_sup_genes_fusion_hit_uniprot_multiple_hits_uniprot_filtered_formated.tsv", header = FALSE)
+```
+
+# 2.- Data preparation:
+
+```{r}
+uniprot_hits_single_c <- uniprot_hits_single
+uniprot_hits_multiple_c <- uniprot_hits_multiple
+
+#Modify columns:
+colnames(uniprot_hits_single_c) <- c("ncbi_isoform", "gge_associated_gene", "uniprot_hit")
+colnames(uniprot_hits_multiple_c) <- c("ncbi_isoform", "gge_associated_gene", "uniprot_hit", "type")
+
+#Creating a column:
+uniprot_hits_single_c$type <- "common_uniprot_ids"
+```
+
+```{r}
+#Creating the dataset:
+df_final <- rbind(uniprot_hits_single_c,uniprot_hits_multiple_c)
+
+#Factorize variables:
+df_final$type <- as.factor(df_final$type)
+```
+
+# 3.- Analysis 
+
+```{r}
+#Table:
+table(df_final$type)
+```
+```{r}
+#Percentage:
+data.table::setDT(df_final)[ , 100 * .N / nrow(df_final), by = type ]
+```
+

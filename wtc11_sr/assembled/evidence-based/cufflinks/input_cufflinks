@@ -1,0 +1,1 @@
+sbatch cufflinks_comparison.sbatch /home/crisag/muestras_wtc11_sr/protocol2_sr_assembled/transcriptome/hints_chr19/output_hints/filtered_wtc11_sr_assembled_sqanti_corrected_chr19_CDS_transcript.gtf.cds.gff /storage/gge/Alejandro/WTC11/filtered_modificado_chr19_CDS.gtf wtc11_sr_assembled_chr19_cufflinks_CDS_transcript

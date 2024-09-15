@@ -1,0 +1,1 @@
+sbatch gtf2hints.sbatch /home/crisag/WTC11_lr/saturation_curve/sqanti3/output_sqanti3_qc FALSE PB 1 TRUE transcript

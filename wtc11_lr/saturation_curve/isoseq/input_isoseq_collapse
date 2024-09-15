@@ -1,0 +1,1 @@
+sbatch isoseq_collapse.sbatch /home/crisag/WTC11_lr/saturation_curve/mapping

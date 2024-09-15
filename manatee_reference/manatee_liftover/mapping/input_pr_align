@@ -1,0 +1,1 @@
+sbatch get_primary_align.sbatch /home/crisag/manatee_reference/mapping/filtering_map ref_manatee_mapped  

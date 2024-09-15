@@ -1,0 +1,1 @@
+sbatch mapping_minimap2.sbatch /home/crisag/manatee_reference/ncbi_data_set/GCF_000243295.1/cds_from_genomic.fna /storage/gge/Alejandro/reference_manatee/manatee_genome_sm.fasta ref_manatee_mapped

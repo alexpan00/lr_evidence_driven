@@ -1,0 +1,1 @@
+sbatch mapping_isoseq.sbatch /home/crisag/WTC11_lr/saturation_curve/isoseq/isoseq_cluster/ /storage/gge/Alejandro/WTC11/lrgasp_grch38_sirvs.fasta

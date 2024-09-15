@@ -1,0 +1,1 @@
+sbatch new_gtf_stringtie.sbatch /home/crisag/muestras_wtc11_sr/protocol2_sr_assembled/stringtie/muestras_wtc11_sr_merged.gtf /home/crisag/muestras_wtc11_sr/protocol2_sr_assembled/stringtie/muestras_wtc11_sr_merged_new.gtf
