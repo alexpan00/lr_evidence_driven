@@ -79,7 +79,7 @@ lrb <- lrb[,c("length", "cat")]
 ```
 
 ```{r}
-cl$cat <- ifelse(cl$structural_category == "fusion", "TriManLat 1.0\nfusion", "TriManLat.1.0\nnon-fusion")
+cl$cat <- ifelse(cl$structural_category == "fusion", "NCBI\nfusion", "NCBI\nnon-fusion")
 cl <- cl[,c("length", "cat")]
 
 final <- rbind(cl, lrb)

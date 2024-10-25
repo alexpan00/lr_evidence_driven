@@ -21,23 +21,23 @@ xaxislabelsF1 <- c("FSM", "ISM", "NIC", "NNC", "Genic_Genomic",  "Antisense", "F
 
 cat.palette = c("FSM"="#6BAED6", "ISM"="#FC8D59", "NIC"="#78C679", 
                 "NNC"="#EE6A50", "Genic_Genomic"="#969696", "Antisense"="#66C2A4", "Fusion"="goldenrod1",
-                "Intergenic" = "darksalmon", "Genic_Intron"="#41B6C4", "Others"= "#969696")
+                "Intergenic" = "darksalmon", "Genic_Intron"="#41B6C4", "Other"= "#969696")
 
 mytheme <- theme(plot.title = element_text(size = 10, face = "bold",hjust = 0.5), 
                  plot.subtitle = element_text(size = 10,hjust = 0.5), 
-                 legend.text = element_text(size=8),
+                 legend.text = element_text(size=9),
                  legend.title = element_text(size=9),
                  axis.title.x = element_text(size=10, margin = margin(t = 1, r = 0, b = 0, l = 0)), 
                  axis.title.y = element_text(size=10,  margin = margin(t = 0, r = 1, b = 0, l = 0)), 
-                 axis.text.x = element_text(size=8), 
-                 axis.text.y = element_text(size=8), 
+                 axis.text.x = element_text(size=9), 
+                 axis.text.y = element_text(size=9), 
                  legend.key.size = unit(1,"line")) +
           theme(strip.text = element_text(size = 10)) + 
   theme(plot.margin = unit(c(0.15,0.15,.15,.15), "cm"),
         text = element_text(family = "Helvetica"),  # Set font to Helvetica
   legend.spacing.x = unit(0.1, 'cm'),         # Adjust horizontal spacing
   legend.spacing.y = unit(0.1, 'cm'),         # Adjust vertical spacing
-  legend.margin = margin(0, 0, 0, 0)) 
+  legend.margin = margin(0, 1, 0, 0)) 
 ```
 
 
@@ -196,9 +196,9 @@ final_df$tech <- factor(final_df$tech,
 
 ```{r}
 final_df_rest <- final_df
-final_df_rest$structural_category <- factor(final_df_rest$structural_category, levels = c(levels(final_df$structural_category), "Others"))
+final_df_rest$structural_category <- factor(final_df_rest$structural_category, levels = c(levels(final_df$structural_category), "Other"))
 top_categories <- c("FSM", "NIC", "NNC", "ISM")
-final_df_rest[!final_df_rest$structural_category %in% top_categories, "structural_category"] <- "Others"
+final_df_rest[!final_df_rest$structural_category %in% top_categories, "structural_category"] <- "Other"
 final_df_rest <- final_df_rest %>% 
   group_by(tech, level, structural_category) %>% 
   summarise(total=sum(total))
@@ -214,7 +214,7 @@ p1 <-  ggplot(final_df_rest, aes(x=tech, y=total, fill=structural_category))+
   ylab("Distribution of\nstructural categories") +
   theme_classic() + mytheme +
   theme(axis.title.x = element_blank()) + theme(legend.position = "bottom") +
-  theme(legend.key.size = unit(0.5, "cm"))
+  theme(legend.key.size = unit(0.4, "cm"))
 p1
 ```
 
@@ -351,9 +351,9 @@ final_p_bottom <- plot_grid(final_p_bottom, legend, ncol = 1, rel_heights = c(1,
 final_p <- plot_grid(final_p_top, final_p_bottom, nrow =2)
 
 final_p_supp_completness <- plot_grid(plotlist = l_plots,  labels = paste(c("A", "B", "C"), names(l_plots)), label_size = 10, nrow = 3, rel_heights = c(1,0.65,.65))
-ggsave(filename = "complettness_supp.svg", final_p_supp_completness, height = 5, width = 6.5)
-ggsave(filename = "complettness_supp.jpeg", final_p_supp_completness, height = 5, width = 6.5)
-ggsave( filename = "gene_sets.jpeg", final_p, height = 5, width = 6)
-ggsave(filename = "gene_sets.svg", final_p, height = 5, width = 6)
+ggsave(filename = "complettness_supp.svg", final_p_supp_completness, height = 5, width = 6.5, dpi = 600)
+ggsave(filename = "complettness_supp.jpeg", final_p_supp_completness, height = 5, width = 6.5, dpi = 600)
+ggsave( filename = "gene_sets.jpeg", final_p, height = 5, width = 6, dpi = 600)
+ggsave(filename = "gene_sets.svg", final_p, height = 5, width = 6, dpi = 600)
 ```
 
