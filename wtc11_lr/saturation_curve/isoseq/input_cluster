@@ -1,0 +1,1 @@
+sbatch preprocess_cluster.sbatch /home/crisag/WTC11_lr/saturation_curve/isoseq/flnc_fofn_dir/ /home/crisag/WTC11_lr/saturation_curve/isoseq/

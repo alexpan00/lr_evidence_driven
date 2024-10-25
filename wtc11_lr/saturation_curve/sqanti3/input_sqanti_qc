@@ -1,0 +1,3 @@
+sbatch sqanti3_qc.sbatch /home/crisag/WTC11_lr/saturation_curve/isoseq/isoseq_collapse /home/crisag/WTC11_lr/isoformas/sqanti3_all_transcripts/archivos_gtf/all_tracncripts_CDS_chr19.gtf /home/crisag/WTC11_lr/saturation_curve/sqanti3/genome/lrgasp_grch38_sirvs.fasta /home/crisag/WTC11_lr/isoformas/sqanti3_all_transcripts/SJ
+
+

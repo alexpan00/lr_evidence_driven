@@ -1,0 +1,1 @@
+sbatch mapping_general_new.sbatch /home/crisag/muestras_wtc11_sr/protocol2_sr_assembled/mapping_tophat2/ENCBS593PKA/ /storage/gge/Alejandro/WTC11/Illumina/trimmed/ENCBS593PKA/ENCBS593PKA_r1.fastq.gz /storage/gge/Alejandro/WTC11/Illumina/trimmed/ENCBS593PKA/ENCBS593PKA_r2.fastq.gz
