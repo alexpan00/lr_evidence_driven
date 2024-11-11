@@ -214,7 +214,7 @@ p1 <-  ggplot(final_df_rest, aes(x=tech, y=total, fill=structural_category))+
   ylab("Distribution of\nstructural categories") +
   theme_classic() + mytheme +
   theme(axis.title.x = element_blank()) + theme(legend.position = "bottom") +
-  theme(legend.key.size = unit(0.4, "cm"))
+  theme(legend.key.size = unit(0.25, "cm"))
 p1
 ```
 

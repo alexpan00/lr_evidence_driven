@@ -41,8 +41,8 @@ colores_graficos <- c("#15918A", "#F58A53", "#FDC659","#AA8C65")
 ```{r}
 mytheme <- theme(plot.title = element_text(size = 10, face = "bold",hjust = 0.5),
                  plot.subtitle = element_text(size = 10,hjust = 0.5),
-                 legend.text = element_text(size=9),
-                 legend.title = element_text(size=9),
+                 legend.text = element_text(size=10),
+                 legend.title = element_text(size=10),
                  axis.title.x = element_text(size=10, margin = margin(t = 1, r = 0, b = 0, l = 0)),
                  axis.title.y = element_text(size=10,  margin = margin(t = 0, r = 1, b = 0, l = 0)),
                  axis.text.x = element_text(size=9),
@@ -211,9 +211,9 @@ plot_g_ai <- ggplot(conjunto_gene_ab_initio, aes(x = as.factor(Approach), y= val
   scale_x_discrete(label = "                Ab initio") +
   theme_classic()+labs(x = "", y = "Value (%)", fill = "Metric")+
   ylim(0,50)+
-  theme(mytheme)+
-  scale_fill_manual(values =  c("#FDC659", "#15918A", "#F58A53")) + theme(legend.key.size = unit(0.2, "cm"))+theme(axis.text.y = element_text(face = "italic")) +
-  coord_flip() 
+  mytheme+
+  scale_fill_manual(values =  c("#FDC659", "#15918A", "#F58A53")) +theme(axis.text.y = element_text(face = "italic")) +
+  coord_flip()+ theme(legend.position = "bottom") + theme(legend.key.size = unit(0.25, "cm"))
 
 plot_g_ai
 ```
@@ -221,9 +221,9 @@ plot_g_ai
 plot_g_t <-ggplot(conjunto_gene_transcriptome, aes(x = Technology, y= value, fill=as.factor(metric)))+
   geom_bar(stat = "identity", position = "dodge",color="black", width = 0.60, linewidth=  .25)+
   theme_classic()+labs(x = "", y = "Value (%)", fill = "Metric")+
-  ylim(0,50)+theme(mytheme)+
+  ylim(0,50)+mytheme+
   scale_fill_manual(values =  c("#FDC659", "#15918A", "#F58A53"))+
-  coord_flip()
+  coord_flip() + theme(legend.position = "bottom") + theme(legend.key.size = unit(0.25, "cm"))
   #geom_text(aes(label=value), position=position_dodge(width=0.6), vjust=-0.25, size=5, family = "helvetica")
 
 plot_g_t
@@ -233,9 +233,9 @@ plot_g_t
 plot_g_ed <-ggplot(conjunto_gene_ed, aes(x = Technology, y= value, fill=as.factor(metric)))+
   geom_bar(stat = "identity", position = "dodge",color="black", width = 0.60, linewidth=  .25)+
   theme_classic()+labs(x = "", y = "Value (%)", fill = "Metric")+
-  ylim(0,50)+theme(mytheme)+theme(plot.title = element_text(hjust = 0.5, face="italic"))+
+  ylim(0,50)+mytheme+theme(plot.title = element_text(hjust = 0.5, face="italic"))+
   scale_fill_manual(values =  c("#FDC659", "#15918A", "#F58A53"))+
-  coord_flip()
+  coord_flip() + theme(legend.position = "bottom") + theme(legend.key.size = unit(0.25, "cm"))
 
 plot_g_ed
 ```
@@ -244,7 +244,7 @@ plot_g_ed
 ```{r}
 p_ver2 <- ggpubr::ggarrange(plot_g_ai,
              plot_g_t, plot_g_ed, nrow=3, ncol=1, common.legend = T, legend = "bottom", labels = c("C", "D", "E"), font.label = list(size=10, family= "Helvetica"), heights = c(.55,.75,1))
-p_ver2
+p_ver2 
 ```
 
 
@@ -450,7 +450,7 @@ stats_gene_final <- data.frame(Sample=c(stats_gene_Sn$Sample, stats_gene_Sp$Samp
 saturation_curve <- ggplot(stats_gene_final)+
   geom_line(aes(x=Sample,y=Value, linetype=Approach,col=Metric), size = 1)+
   geom_point(aes(x=Sample,y=Value, col=Metric)) +
-  labs(x="Subsampling of reads (%)",y="Score (%)")+theme_classic()+ scale_x_continuous(breaks=c(25,50,75,100))+ylim(25,53)+scale_color_manual(values=colores_graficos )+theme(mytheme)+
+  labs(x="Subsampling of reads (%)",y="Score (%)")+theme_classic()+ scale_x_continuous(breaks=c(25,50,75,100))+ylim(25,53)+scale_color_manual(values=colores_graficos )+mytheme+
   theme(legend.position = "bottom", legend.box = "vertical", legend.spacing.y = unit(0.001, 'cm') ) +
   guides(
     color = guide_legend(order = 1),
@@ -467,7 +467,7 @@ saturation_curve
 ml <- ggplot(data=missed_loci, aes(x=Subsampling, y=Missed_loci, group=Approach)) +
   geom_line(size=1, aes(linetype= Approach))+
   geom_point(aes(x=Subsampling,y=Missed_loci)) +
-  labs(x = "Subsampling of reads (%)", y = "Missed loci (%)", color = "Approach")+theme_classic()+theme(mytheme)+theme(legend.position = "bottom")+scale_color_manual(values=colores_graficos) + theme(
+  labs(x = "Subsampling of reads (%)", y = "Missed loci (%)", color = "Approach")+theme_classic()+mytheme+theme(legend.position = "bottom")+scale_color_manual(values=colores_graficos) + theme(
   plot.margin = margin(t = 0, r = 0, b = 1.1, l = 0, unit = "cm")
 )
 
@@ -476,7 +476,7 @@ ml
 ml_no_margin <- ggplot(data=missed_loci, aes(x=Subsampling, y=Missed_loci, group=Approach)) +
   geom_line(size=1, aes(linetype= Approach))+
   geom_point(aes(x=Subsampling,y=Missed_loci)) +
-  labs(x = "Subsampling of reads (%)", y = "Missed loci (%)", color = "Approach")+theme_classic()+theme(mytheme)+theme(legend.position = "bottom")+scale_color_manual(values=colores_graficos) 
+  labs(x = "Subsampling of reads (%)", y = "Missed loci (%)", color = "Approach")+theme_classic()+mytheme+theme(legend.position = "bottom")+scale_color_manual(values=colores_graficos) 
 
 
 ml_no_margin
@@ -490,7 +490,8 @@ ml_no_margin
 ggarrange(ggarrange(saturation_curve,ml_no_margin, nrow=2,labels = c("A", "B"),
           font.label = list(size = 10, color = "black")), p_ver2, ncol = 2)
 
-ggsave("Figura_3_complete_gr.jpg", device = "jpeg", width=7.5, height=6.55,limitsize = FALSE, dpi=600)
+ggsave("Figura_3_complete_gr.jpg", device = "jpeg", width=7.5, height=6.55, dpi=600)
+ggsave("Figura_3_complete_gr.svg", device = "svg", width=7.5, height=6.55, dpi=600)
 
 ```
 

@@ -30,17 +30,17 @@ colores <- RColorConesa::colorConesa(4, palette = "main")
 ```{r}
 mytheme <- theme(plot.title = element_text(size = 10, face = "bold",hjust = -0.07),
                  plot.subtitle = element_text(size = 10,hjust = 0.5),
-                 legend.text = element_text(size=8),
+                 legend.text = element_text(size=9),
                  legend.title = element_text(size=9),
                  axis.title.x = element_text(size=10, margin = margin(t = 1, r = 0, b = 0, l = 0)),
                  axis.title.y = element_text(size=10,  margin = margin(t = 0, r = 1, b = 0, l = 0)),
-                 axis.text.x = element_text(size=8),
-                 axis.text.y = element_text(size=8),
+                 axis.text.x = element_text(size=9),
+                 axis.text.y = element_text(size=9),
                  legend.key.size = unit(1,"line")) +
           theme(strip.text = element_text(size = 10)) +
   theme(plot.margin = unit(c(0.15,0.15,.15,.15), "cm"),
         text = element_text(family = "Helvetica"),  # Set font to Helvetica
-  legend.spacing.x = unit(0.1, 'cm'),         # Adjust horizontal spacing
+  legend.spacing.x = unit(1, 'cm'),         # Adjust horizontal spacing
   legend.spacing.y = unit(0.1, 'cm'),         # Adjust vertical spacing
   legend.margin = margin(0, 0, 0, 0))
 ```
@@ -592,8 +592,8 @@ class_ncbi_gge
 
 ```{r}
 #Guardamos el plot:
-ggsave("C:/Users/Usuario/Desktop/Manatee/Comparison_annotations_ncbi_gge_number.jpg", class_ncbi_gge, device = "jpeg", width=12.5, height=7,limitsize = FALSE, dpi=300)
-ggsave("C:/Users/Usuario/Desktop/Manatee/Comparison_annotations_ncbi_gge_number.pdf", class_ncbi_gge, device = "pdf", width=12.5, height=7,limitsize = FALSE, dpi=300)
+ggsave("Comparison_annotations_ncbi_gge_number.jpg", class_ncbi_gge, device = "jpeg", width=12.5, height=7,limitsize = FALSE, dpi=600)
+ggsave("Comparison_annotations_ncbi_gge_number.pdf", class_ncbi_gge, device = "pdf", width=12.5, height=7,limitsize = FALSE, dpi=600)
 ```
 
 #### b) Percentage:
@@ -613,8 +613,8 @@ class_ncbi_gge_perc
 
 ```{r}
 #Guardamos el plot:
-ggsave("Comparison_annotations_ncbi_gge_percentage.jpg", class_ncbi_gge_perc, device = "jpeg", width=12.5, height=7,limitsize = FALSE, dpi=300)
-ggsave("Comparison_annotations_ncbi_gge_percentage.pdf", class_ncbi_gge_perc, device = "pdf", width=12.5, height=7,limitsize = FALSE, dpi=300)
+ggsave("Comparison_annotations_ncbi_gge_percentage.jpg", class_ncbi_gge_perc, device = "jpeg", width=12.5, height=7,limitsize = FALSE, dpi=600)
+ggsave("Comparison_annotations_ncbi_gge_percentage.pdf", class_ncbi_gge_perc, device = "pdf", width=12.5, height=7,limitsize = FALSE, dpi=600)
 ```
 
 
@@ -634,8 +634,8 @@ class_isoforms
 
 ```{r}
 #Guardamos el plot:
-ggsave("Number_isoforms_per_gene.jpg", class_isoforms, device = "jpeg", width=12.5, height=7,limitsize = FALSE, dpi=300)
-ggsave("Number_isoforms_per_gene.pdf", class_isoforms, device = "pdf", width=12.5, height=7,limitsize = FALSE, dpi=300)
+ggsave("Number_isoforms_per_gene.jpg", class_isoforms, device = "jpeg", width=12.5, height=7,limitsize = FALSE, dpi=600)
+ggsave("Number_isoforms_per_gene.pdf", class_isoforms, device = "pdf", width=12.5, height=7,limitsize = FALSE, dpi=600)
 ```
 
 ### 2.3.3.- Supported fusion vs no fusion
@@ -653,8 +653,8 @@ p
 
 ```{r}
 #Guardamos el plot:
-ggsave("Number_exon_fusion_vs_no_fusion.jpg", p, device = "jpeg", width=12.5, height=7,limitsize = FALSE, dpi=300)
-ggsave("Number_exon_fusion_vs_no_fusion.pdf", p, device = "pdf", width=12.5, height=7,limitsize = FALSE, dpi=300)
+ggsave("Number_exon_fusion_vs_no_fusion.jpg", p, device = "jpeg", width=12.5, height=7,limitsize = FALSE, dpi=600)
+ggsave("Number_exon_fusion_vs_no_fusion.pdf", p, device = "pdf", width=12.5, height=7,limitsize = FALSE, dpi=600)
 ```
 
 ```{r}
@@ -668,8 +668,8 @@ p2
 
 ```{r}
 #Guardamos el plot:
-ggsave("Length_fusion_vs_no_fusion.jpg", p2, device = "jpeg", width=12.5, height=7,limitsize = FALSE, dpi=300)
-ggsave("Length_fusion_vs_no_fusion.pdf", p2, device = "pdf", width=12.5, height=7,limitsize = FALSE, dpi=300)
+ggsave("Length_fusion_vs_no_fusion.jpg", p2, device = "jpeg", width=12.5, height=7,limitsize = FALSE, dpi=600)
+ggsave("Length_fusion_vs_no_fusion.pdf", p2, device = "pdf", width=12.5, height=7,limitsize = FALSE, dpi=600)
 ``` 
 
 
@@ -680,7 +680,7 @@ ggsave("Length_fusion_vs_no_fusion.pdf", p2, device = "pdf", width=12.5, height=
 
 
 ```{r}
-class_isoforms <- class_isoforms  + guides(fill=guide_legend(nrow=2,byrow=TRUE, title = "Isoforms\nper gene"))
+class_isoforms <- class_isoforms  + guides(fill=guide_legend(nrow=2,byrow=TRUE, title = "Isoforms \nper gene "))
 
 p4 <- ggarrange(busco_manatee, class_isoforms, ncol= 2, labels = c("A", "B"), font.label = list(size=10, family= "Helvetica"))
 p4
